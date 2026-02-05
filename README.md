@@ -1,10 +1,10 @@
-# KRISTINA | SCENT
+# Дніпровська Парфумерка
 
 Масмаркет онлайн-магазин парфумерії для українського ринку.
 
 ## 🌸 Про проєкт
 
-**KRISTINA | SCENT** — MVP landing page для інтернет-магазину парфумерії з фокусом на:
+**Дніпровська Парфумерка** — MVP landing page для інтернет-магазину парфумерії з фокусом на:
 - Жіночість та естетику
 - Доступність для широкої аудиторії
 - Простоту та зрозумілість
@@ -62,7 +62,7 @@ npx serve
 ```bash
 git init
 git add .
-git commit -m "Initial commit: KRISTINA | SCENT MVP"
+git commit -m "Initial commit: Дніпровська Парфумерка MVP"
 git branch -M main
 git remote add origin https://github.com/your-username/kristina-scent.git
 git push -u origin main
@@ -81,7 +81,7 @@ git push -u origin main
 
 1. Додайте файл `CNAME` з вашим доменом:
 ```bash
-echo "kristinascent.com" > CNAME
+echo "dniprowska-parfumerka.shop" > CNAME
 git add CNAME
 git commit -m "Add custom domain"
 git push
@@ -142,13 +142,13 @@ kristina-scent/
 
 ## 📧 Контакти
 
-- **Email:** info@kristinascent.com
+- **Email:** info@dniprowska-parfumerka.shop
 - **Instagram:** @kristina.scent
 - **Telegram:** @kristina_scent
 
 ## 📄 Ліцензія
 
-© 2024 KRISTINA | SCENT. Всі права захищені.
+© 2024 Дніпровська Парфумерка. Всі права захищені.
 
 ---
 
