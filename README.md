@@ -1,10 +1,10 @@
-# Дніпровська Парфумерка
+# Dniprowska Parfumerka
 
 Масмаркет онлайн-магазин парфумерії для українського ринку.
 
 ## 🌸 Про проєкт
 
-**Дніпровська Парфумерка** — MVP landing page для інтернет-магазину парфумерії з фокусом на:
+**Dniprowska Parfumerka** — MVP landing page для інтернет-магазину парфумерії з фокусом на:
 - Жіночість та естетику
 - Доступність для широкої аудиторії
 - Простоту та зрозумілість
@@ -62,7 +62,7 @@ npx serve
 ```bash
 git init
 git add .
-git commit -m "Initial commit: Дніпровська Парфумерка MVP"
+git commit -m "Initial commit: Dniprowska Parfumerka MVP"
 git branch -M main
 git remote add origin https://github.com/your-username/kristina-scent.git
 git push -u origin main
@@ -148,7 +148,7 @@ kristina-scent/
 
 ## 📄 Ліцензія
 
-© 2024 Дніпровська Парфумерка. Всі права захищені.
+© 2024 Dniprowska Parfumerka. Всі права захищені.
 
 ---
 
