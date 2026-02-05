@@ -133,6 +133,36 @@ kristina-scent/
 
 ## Changelog
 
+### Version 1.1 (2026-02-04)
+**Updates & Improvements**
+
+**Added:**
+- 6th category: Аромадифузори (aroma.jpg)
+- Feedback slider section with 5 customer reviews from Instagram
+- Owner photo background in "Why Us" section (me.jpg)
+- Favicon integration (favicon.png)
+- Horizontal feedback slider with swipe support and arrow navigation
+
+**Fixed:**
+- Category background images path (removed ../ for GitHub Pages compatibility)
+- Mobile category display - images now show fully without cropping (background-size: 90%)
+- Hero slider autoplay - now properly changes every 5 seconds
+- Year in footer updated to 2026
+- Why Us section overlay reduced to 65-75% for better photo visibility
+
+**Optimized:**
+- Mobile category cards: smaller height (160px), better spacing
+- Category titles on mobile: improved readability with background overlay
+- Tablet/Desktop: restored full cover mode for categories (220-280px)
+
+**Images Integrated:**
+- images/categories/aroma.jpg (6th category)
+- images/brand/me.jpg (owner photo background)
+- images/brand/favicon.png (browser icon)
+- images/feedback/fbck-1.jpg through fbck-5.jpg (customer reviews)
+
+---
+
 ### Version 1.0 (2024-02-04)
 **Initial Release - MVP Complete**
 
@@ -203,6 +233,7 @@ kristina-scent/
 ---
 
 ## Version History
+- **v1.1** (2026-02-04): Added 6th category, feedback slider, owner photo background, mobile optimization fixes
 - **v1.0** (2024-02-04): Initial MVP release with full image integration and real contacts
 
 ---
