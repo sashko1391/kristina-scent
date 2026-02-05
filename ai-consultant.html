@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ШІ-консультант KRISTINA | SCENT — віртуальний помічник з вибору парфумерії">
+    <title>ШІ-консультант — KRISTINA | SCENT</title>
+    <link rel="icon" type="image/png" href="images/brand/favicon.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="ai-consultant.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <span class="logo-text">KRISTINA</span>
+                    <span class="logo-divider">|</span>
+                    <span class="logo-accent">SCENT</span>
+                </a>
+                <button class="menu-toggle" aria-label="Меню">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <nav class="nav">
+                    <a href="index.html" class="nav-link">Головна</a>
+                    <a href="catalog.html" class="nav-link">Каталог</a>
+                    <a href="ai-consultant.html" class="nav-link active">ШІ-консультант</a>
+                    <a href="index.html#about" class="nav-link">Про нас</a>
+                    <a href="index.html#contact" class="nav-link">Контакти</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- AI Consultant Section -->
+    <section class="ai-consultant-section">
+        <div class="ai-background"></div>
+        <div class="container">
+            <div class="ai-intro">
+                <h1 class="page-title">🤖 ШІ-консультант</h1>
+                <p class="ai-description">
+                    Ваш віртуальний помічник у світі парфумерії! Я знаю всі товари нашого магазину 
+                    та можу допомогти підібрати ідеальний аромат саме для вас. Запитуйте про наявність, 
+                    характеристики, рекомендації — я тут, щоб допомогти! 🌸
+                </p>
+            </div>
+
+            <div class="chat-container">
+                <div class="chat-header">
+                    <div class="chat-status">
+                        <span class="status-dot"></span>
+                        <span>Консультант онлайн</span>
+                    </div>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Messages will be added here -->
+                </div>
+
+                <div class="chat-input-container">
+                    <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <form class="chat-input-form" id="chatForm">
+                        <input 
+                            type="text" 
+                            id="chatInput" 
+                            placeholder="Напишіть ваше питання..."
+                            autocomplete="off"
+                            required
+                        >
+                        <button type="submit" id="sendButton">
+                            <span>➤</span>
+                        </button>
+                    </form>
+                    <div class="quick-questions">
+                        <button class="quick-btn" data-question="Що чоловіче мускатне ви порекомендуєте?">Чоловічі мускатні</button>
+                        <button class="quick-btn" data-question="Які аромати у вас є розливом?">Аромати розливом</button>
+                        <button class="quick-btn" data-question="Порекомендуйте щось легке на весну">Легкі на весну</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <span class="logo-text">KRISTINA</span>
+                        <span class="logo-divider">|</span>
+                        <span class="logo-accent">SCENT</span>
+                    </div>
+                    <p class="footer-text">Ваш аромат. Ваша історія.</p>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2026 KRISTINA | SCENT. Всі права захищені.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="ai-consultant.js"></script>
+</body>
+</html>

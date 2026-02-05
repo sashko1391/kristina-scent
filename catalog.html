@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Каталог парфумерії KRISTINA | SCENT. Жіноча, чоловіча та нішева парфумерія.">
+    <title>Каталог — KRISTINA | SCENT</title>
+    <link rel="icon" type="image/png" href="images/brand/favicon.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="catalog.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <span class="logo-text">KRISTINA</span>
+                    <span class="logo-divider">|</span>
+                    <span class="logo-accent">SCENT</span>
+                </a>
+                <button class="menu-toggle" aria-label="Меню">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <nav class="nav">
+                    <a href="index.html" class="nav-link">Головна</a>
+                    <a href="catalog.html" class="nav-link active">Каталог</a>
+                    <a href="index.html#about" class="nav-link">Про нас</a>
+                    <a href="index.html#contact" class="nav-link">Контакти</a>
+                </nav>
+                <button class="cart-button" id="cartButton">
+                    🛒
+                    <span class="cart-count" id="cartCount">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Catalog Section -->
+    <section class="catalog-section">
+        <div class="container">
+            <h1 class="page-title">Каталог парфумерії</h1>
+            
+            <!-- Filters -->
+            <div class="filters">
+                <button class="filter-btn active" data-category="all">Всі товари</button>
+                <button class="filter-btn" data-category="rozlyv">Розлив</button>
+                <button class="filter-btn" data-category="female">Жіноча</button>
+                <button class="filter-btn" data-category="male">Чоловіча</button>
+                <button class="filter-btn" data-category="unisex">Унісекс</button>
+                <button class="filter-btn" data-category="niche">Нішева</button>
+                <button class="filter-btn" data-category="aroma">Аромадифузори</button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Завантаження товарів...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="error" class="error-state" style="display: none;">
+                <p>⚠️ Помилка завантаження товарів. Спробуйте оновити сторінку.</p>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="catalog-grid" id="catalogGrid">
+                <!-- Products will be loaded here dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Cart Modal -->
+    <div class="cart-modal" id="cartModal">
+        <div class="cart-modal-content">
+            <div class="cart-header">
+                <h2>Кошик</h2>
+                <button class="cart-close" id="cartClose">&times;</button>
+            </div>
+            <div class="cart-body" id="cartBody">
+                <!-- Cart items will be displayed here -->
+            </div>
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <span>Загальна сума:</span>
+                    <span id="cartTotal">0 грн</span>
+                </div>
+                <button class="btn btn-primary" id="checkoutButton">Оформити замовлення</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Modal -->
+    <div class="order-modal" id="orderModal">
+        <div class="order-modal-content">
+            <div class="order-header">
+                <h2>Оформлення замовлення</h2>
+                <button class="order-close" id="orderClose">&times;</button>
+            </div>
+            <div class="order-body">
+                <form id="orderForm">
+                    <div class="form-group">
+                        <label for="customerName">Ім'я *</label>
+                        <input type="text" id="customerName" required placeholder="Ваше ім'я">
+                    </div>
+                    <div class="form-group">
+                        <label for="customerPhone">Телефон *</label>
+                        <input type="tel" id="customerPhone" required placeholder="099-123-45-67">
+                    </div>
+                    <div class="form-group">
+                        <label for="customerCity">Місто *</label>
+                        <input type="text" id="customerCity" required placeholder="Ваше місто">
+                    </div>
+                    <div class="form-group">
+                        <label for="customerComment">Коментар (опціонально)</label>
+                        <textarea id="customerComment" rows="3" placeholder="Додаткова інформація"></textarea>
+                    </div>
+                    <div class="order-summary">
+                        <h3>Ваше замовлення:</h3>
+                        <div id="orderSummary"></div>
+                        <div class="order-total">
+                            <strong>До сплати:</strong>
+                            <strong id="orderTotal">0 грн</strong>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Відправити замовлення</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <span class="logo-text">KRISTINA</span>
+                        <span class="logo-divider">|</span>
+                        <span class="logo-accent">SCENT</span>
+                    </div>
+                    <p class="footer-text">Ваш аромат. Ваша історія.</p>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2026 KRISTINA | SCENT. Всі права захищені.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="catalog.js"></script>
+</body>
+</html>
