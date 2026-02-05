@@ -1,7 +1,10 @@
 /* ========================================
-   KRISTINA | SCENT â€” CSS Styles
+   KRISTINA | SCENT — CSS Styles
    Mobile-first, Responsive, Soft Luxury
    ======================================== */
+
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800&display=swap');
 
 /* CSS Variables */
 :root {
@@ -15,7 +18,8 @@
     --color-text-light: #666666;
     --color-border: #F0E8EA;
     
-    --font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-headings: 'Playfair Display', Georgia, serif;
     
     --spacing-xs: 0.5rem;
     --spacing-sm: 1rem;
@@ -75,12 +79,14 @@ button {
 }
 
 /* Typography */
-h1, h2, h3, h4 {
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-headings);
     line-height: 1.2;
     font-weight: 600;
 }
 
 .section-title {
+    font-family: var(--font-headings);
     font-size: 2rem;
     text-align: center;
     margin-bottom: var(--spacing-xl);
@@ -120,6 +126,7 @@ h1, h2, h3, h4 {
     gap: var(--spacing-xs);
     font-size: 1.25rem;
     font-weight: 600;
+    font-family: var(--font-headings);
 }
 
 .logo-text {
@@ -246,7 +253,7 @@ h1, h2, h3, h4 {
     object-fit: cover;
 }
 
-/* Overlay Ð´Ð»Ñ Ñ‡Ð¸Ñ‚Ð°Ð±ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ñ– Ñ‚ÐµÐºÑÑ‚Ñƒ */
+/* Overlay для читабельності тексту */
 .hero-slide::before {
     content: '';
     position: absolute;
@@ -272,6 +279,7 @@ h1, h2, h3, h4 {
 }
 
 .hero-title {
+    font-family: var(--font-headings);
     font-size: 2rem;
     margin-bottom: var(--spacing-md);
     color: var(--color-text);
@@ -426,6 +434,7 @@ h1, h2, h3, h4 {
 }
 
 .category-large-title {
+    font-family: var(--font-headings);
     position: relative;
     z-index: 1;
     color: var(--color-white);
@@ -527,6 +536,7 @@ h1, h2, h3, h4 {
 }
 
 .product-name {
+    font-family: var(--font-headings);
     font-size: 1rem;
     margin-bottom: var(--spacing-xs);
     color: var(--color-text);
@@ -561,6 +571,7 @@ h1, h2, h3, h4 {
 }
 
 .decant-title {
+    font-family: var(--font-headings);
     color: var(--color-white);
     font-size: 1.25rem;
     margin-bottom: var(--spacing-xs);
@@ -692,6 +703,7 @@ h1, h2, h3, h4 {
 }
 
 .feature-title {
+    font-family: var(--font-headings);
     font-size: 1.125rem;
     margin-bottom: var(--spacing-sm);
     color: var(--color-text);
@@ -821,6 +833,7 @@ h1, h2, h3, h4 {
 }
 
 .contact-title {
+    font-family: var(--font-headings);
     font-size: 1.25rem;
     margin-bottom: var(--spacing-sm);
     color: var(--color-text);
@@ -1012,7 +1025,7 @@ h1, h2, h3, h4 {
         font-size: 3.5rem;
     }
     
-    /* Categories - 3 columns (2 rows Ã— 3) */
+    /* Categories - 3 columns (2 rows × 3) */
     .categories-large-grid {
         grid-template-columns: repeat(3, 1fr);
     }

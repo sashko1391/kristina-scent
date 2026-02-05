@@ -392,6 +392,10 @@ async function handleOrderSubmit(e) {
 
 async function sendToTelegram(message) {
     try {
+        console.log('Sending order to Telegram via Worker...');
+        console.log('Worker URL:', WORKER_URL);
+        console.log('Message length:', message.length);
+        
         const response = await fetch(WORKER_URL, {
             method: 'POST',
             headers: {
@@ -403,10 +407,26 @@ async function sendToTelegram(message) {
             })
         });
         
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Worker response error:', errorText);
+            throw new Error(`Worker error: ${response.status}`);
+        }
+        
         const data = await response.json();
-        return data.ok;
+        console.log('Telegram response:', data);
+        
+        if (data.ok === false) {
+            console.error('Telegram API error:', data.error);
+            throw new Error(data.error || 'Telegram API error');
+        }
+        
+        return data.ok === true;
     } catch (error) {
         console.error('Telegram error:', error);
+        alert(`Помилка відправки: ${error.message}\n\nПеревірте:\n1. Worker задеплоєний?\n2. TELEGRAM_BOT_TOKEN правильний?\n3. TELEGRAM_CHAT_ID правильний?\n4. Написали боту хоч одне повідомлення?`);
         return false;
     }
 }
