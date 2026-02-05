@@ -6,12 +6,10 @@
 // ========================================
 
 // Google Sheets Published CSV URL
-// Format: https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid=0
 const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1T_JIYKlQR54PWPCH028P2TdVLiQOrdacdGY3kH3edjE/export?format=csv&gid=0';
 
-// Telegram Bot Configuration
-const TELEGRAM_BOT_TOKEN = 'YOUR_BOT_TOKEN'; // Замініть на токен бота
-const TELEGRAM_CHAT_ID = 'YOUR_CHAT_ID'; // Замініть на chat_id
+// Cloudflare Worker URL
+const WORKER_URL = 'https://kristina-scent-api.sashko1391.workers.dev';
 
 // ========================================
 // STATE
@@ -93,12 +91,11 @@ function parseCSV(csv) {
         const name = values[1]?.replace(/"/g, '').trim();
         const category = values[2]?.replace(/"/g, '').trim().toLowerCase();
         const price = parseInt(values[3]?.replace(/"/g, '').trim()) || 0;
-        const imageUrl = values[4]?.replace(/"/g, '').trim(); // Column E (original link)
-        const directLink = values[5]?.replace(/"/g, '').trim(); // Column F (ready to use!)
+        const imageUrl = values[4]?.replace(/"/g, '').trim();
+        const directLink = values[5]?.replace(/"/g, '').trim();
         const badge = values[6]?.replace(/"/g, '').trim();
         
         if (id && name && price) {
-            // Use column F (directLink) if available, it's already in correct format
             const finalImageUrl = directLink || imageUrl;
             
             products.push({
@@ -258,8 +255,6 @@ function addToCart(productId) {
     }
     
     saveCart();
-    
-    // Show feedback
     showToast('✓ Додано в кошик');
 }
 
@@ -370,7 +365,7 @@ async function handleOrderSubmit(e) {
         message += `\n💬 *Коментар:* ${comment}`;
     }
     
-    // Send to Telegram
+    // Send to Telegram через Worker
     const success = await sendToTelegram(message);
     
     if (success) {
@@ -397,17 +392,14 @@ async function handleOrderSubmit(e) {
 
 async function sendToTelegram(message) {
     try {
-        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-        
-        const response = await fetch(url, {
+        const response = await fetch(WORKER_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                chat_id: TELEGRAM_CHAT_ID,
-                text: message,
-                parse_mode: 'Markdown'
+                action: 'telegram',
+                message: message
             })
         });
         
@@ -423,7 +415,6 @@ async function sendToTelegram(message) {
 // UI HELPERS
 // ========================================
 function showToast(message) {
-    // Simple toast notification
     const toast = document.createElement('div');
     toast.textContent = message;
     toast.style.cssText = `
