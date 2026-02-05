@@ -6,7 +6,7 @@
    Жодних ключів у фронтенді.
 */
 
-const API_BASE = 'https://api.your-domain.com'; // ← ЗАМІНИ на свій Worker домен або workers.dev URL
+const API_BASE = 'https://kristina-scent-api.sashko1391.workers.dev'; // ← ЗАМІНИ на свій Worker домен або workers.dev URL
 const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1T_JIYKlQR54PWPCH028P2TdVLiQOrdacdGY3kH3edjE/export?format=csv&gid=0';
 
 let conversationHistory = [];
