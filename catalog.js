@@ -8,6 +8,9 @@
 // Google Sheets Published CSV URL
 const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1T_JIYKlQR54PWPCH028P2TdVLiQOrdacdGY3kH3edjE/export?format=csv&gid=0';
 
+// Fallback JSON (якщо Google Sheets недоступний)
+const FALLBACK_JSON_URL = 'products-fallback.json';
+
 // Cloudflare Worker URL
 const WORKER_URL = 'https://kristina-scent-api.sashko1391.workers.dev';
 
@@ -54,21 +57,50 @@ async function loadProducts() {
         loading.style.display = 'block';
         error.style.display = 'none';
         
-        console.log('Loading products from:', GOOGLE_SHEET_URL);
-        const response = await fetch(GOOGLE_SHEET_URL);
-        const csvText = await response.text();
+        console.log('Loading products from Google Sheets:', GOOGLE_SHEET_URL);
         
-        console.log('CSV loaded, length:', csvText.length);
-        allProducts = parseCSV(csvText);
+        // Try Google Sheets with timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
         
-        console.log('Products parsed:', allProducts.length);
-        console.log('First product example:', allProducts[0]);
+        try {
+            const response = await fetch(GOOGLE_SHEET_URL, {
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) throw new Error('Google Sheets response not OK');
+            
+            const csvText = await response.text();
+            console.log('CSV loaded successfully, length:', csvText.length);
+            
+            allProducts = parseCSV(csvText);
+            console.log('Products parsed from Google Sheets:', allProducts.length);
+            
+        } catch (sheetsError) {
+            console.warn('Google Sheets failed, trying fallback JSON:', sheetsError.message);
+            
+            // Fallback to local JSON
+            const fallbackResponse = await fetch(FALLBACK_JSON_URL);
+            if (!fallbackResponse.ok) throw new Error('Both Google Sheets and fallback failed');
+            
+            const fallbackData = await fallbackResponse.json();
+            allProducts = fallbackData.products;
+            console.log('Products loaded from fallback JSON:', allProducts.length);
+            
+            // Show warning to user
+            showToast('⚠️ Завантажено з резервної копії');
+        }
+        
+        if (allProducts.length === 0) {
+            throw new Error('No products found');
+        }
         
         loading.style.display = 'none';
         displayProducts(allProducts);
         
     } catch (err) {
-        console.error('Error loading products:', err);
+        console.error('Critical error loading products:', err);
         loading.style.display = 'none';
         error.style.display = 'block';
     }

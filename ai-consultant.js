@@ -11,6 +11,9 @@ const WORKER_URL = 'https://kristina-scent-api.sashko1391.workers.dev';
 // Google Sheets URL
 const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1T_JIYKlQR54PWPCH028P2TdVLiQOrdacdGY3kH3edjE/export?format=csv&gid=0';
 
+// Fallback JSON (якщо Google Sheets недоступний)
+const FALLBACK_JSON_URL = 'products-fallback.json';
+
 // ========================================
 // STATE
 // ========================================
@@ -32,12 +35,39 @@ document.addEventListener('DOMContentLoaded', async function() {
 // ========================================
 async function loadProducts() {
     try {
-        const response = await fetch(GOOGLE_SHEET_URL);
-        const csvText = await response.text();
-        productsData = parseCSV(csvText);
-        console.log('Products loaded:', productsData.length);
+        console.log('Loading products from Google Sheets...');
+        
+        // Try Google Sheets with timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        try {
+            const response = await fetch(GOOGLE_SHEET_URL, {
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) throw new Error('Google Sheets not available');
+            
+            const csvText = await response.text();
+            productsData = parseCSV(csvText);
+            console.log('Products loaded from Google Sheets:', productsData.length);
+            
+        } catch (sheetsError) {
+            console.warn('Google Sheets failed, using fallback:', sheetsError.message);
+            
+            // Fallback to local JSON
+            const fallbackResponse = await fetch(FALLBACK_JSON_URL);
+            if (!fallbackResponse.ok) throw new Error('Both sources failed');
+            
+            const fallbackData = await fallbackResponse.json();
+            productsData = fallbackData.products;
+            console.log('Products loaded from fallback:', productsData.length);
+        }
+        
     } catch (error) {
-        console.error('Error loading products:', error);
+        console.error('Critical error loading products:', error);
+        productsData = []; // Empty array as last resort
     }
 }
 

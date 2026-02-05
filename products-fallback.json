@@ -1,0 +1,55 @@
+{
+  "_comment": "Fallback для Google Sheets. Оновлюйте цей файл при зміні товарів.",
+  "_last_updated": "2026-02-05",
+  "_total_products": 6,
+  "products": [
+    {
+      "id": "1",
+      "name": "Chanel N°5",
+      "category": "female",
+      "price": 250,
+      "imageUrl": "images/products/chanel_5.jpg",
+      "badge": "Хіт"
+    },
+    {
+      "id": "2",
+      "name": "Dior Sauvage",
+      "category": "male",
+      "price": 280,
+      "imageUrl": "images/products/dior_sauvage.jpg",
+      "badge": "Популярне"
+    },
+    {
+      "id": "3",
+      "name": "Lancôme La Vie Est Belle",
+      "category": "female",
+      "price": 300,
+      "imageUrl": "images/products/lancome-vie.jpg",
+      "badge": "Хіт"
+    },
+    {
+      "id": "4",
+      "name": "Tom Ford Black Orchid",
+      "category": "unisex",
+      "price": 350,
+      "imageUrl": "images/products/tom-ford-orchid.jpg",
+      "badge": ""
+    },
+    {
+      "id": "5",
+      "name": "Hermès Terre d'Hermès",
+      "category": "male",
+      "price": 320,
+      "imageUrl": "images/products/hermes-terre.jpg",
+      "badge": "Популярне"
+    },
+    {
+      "id": "6",
+      "name": "Versace Eros",
+      "category": "male",
+      "price": 290,
+      "imageUrl": "images/products/versace-eros.jpg",
+      "badge": ""
+    }
+  ]
+}
