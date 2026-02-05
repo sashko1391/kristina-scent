@@ -143,7 +143,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .logo-img {
-    height: 50px;
+    height: 80px;
     width: auto;
     display: block;
 }
@@ -899,6 +899,31 @@ h1, h2, h3, h4, h5, h6 {
 .footer-bottom p {
     color: rgba(255, 255, 255, 0.5);
     font-size: 0.875rem;
+}
+
+.footer-credits {
+    margin-top: var(--spacing-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+}
+
+.telegram-link {
+    display: inline-flex;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.7);
+    transition: var(--transition);
+}
+
+.telegram-link:hover {
+    color: var(--color-warm-gold);
+    transform: scale(1.1);
+}
+
+.telegram-link svg {
+    width: 18px;
+    height: 18px;
 }
 
 /* Tablet Styles (768px and up) */

@@ -134,7 +134,7 @@ function displayProducts(products) {
                      style="opacity:0; transition: opacity 0.3s;">
                 <div class="product-hover-info">
                     <p class="product-info-text">${product.name}</p>
-                    <p class="product-info-text"><strong>${product.price} Ð³Ñ€Ð½</strong></p>
+                    <p class="product-info-text"><strong>${product.price} грн</strong></p>
                     <button class="add-to-cart-btn" onclick="addToCart('${product.id}')">
                         ðŸ›’ Ð”Ð¾Ð´Ð°Ñ‚Ð¸ Ð² ÐºÐ¾ÑˆÐ¸Ðº
                     </button>
@@ -142,7 +142,7 @@ function displayProducts(products) {
             </div>
             <div class="product-card-info">
                 <h3 class="product-card-name">${product.name}</h3>
-                <p class="product-card-price">${product.price} Ð³Ñ€Ð½</p>
+                <p class="product-card-price">${product.price} грн</p>
             </div>
         </div>
     `).join('');
@@ -284,7 +284,7 @@ function renderCart() {
     
     if (cart.length === 0) {
         cartBody.innerHTML = '<div class="cart-empty">ÐšÐ¾ÑˆÐ¸Ðº Ð¿Ð¾Ñ€Ð¾Ð¶Ð½Ñ–Ð¹</div>';
-        cartTotal.textContent = '0 Ð³Ñ€Ð½';
+        cartTotal.textContent = '0 грн';
         return;
     }
     
@@ -295,7 +295,7 @@ function renderCart() {
             <img src="${item.imageUrl}" alt="${item.name}" class="cart-item-image" onerror="this.src='images/products/placeholder.jpg'">
             <div class="cart-item-details">
                 <div class="cart-item-name">${item.name}</div>
-                <div class="cart-item-price">${item.price} Ð³Ñ€Ð½</div>
+                <div class="cart-item-price">${item.price} грн</div>
                 <div class="cart-item-controls">
                     <button class="qty-btn" onclick="updateQuantity('${item.id}', -1)">âˆ’</button>
                     <span class="cart-item-qty">${item.quantity}</span>
@@ -306,7 +306,7 @@ function renderCart() {
         </div>
     `).join('');
     
-    cartTotal.textContent = `${total} Ð³Ñ€Ð½`;
+    cartTotal.textContent = `${total} грн`;
 }
 
 // ========================================
@@ -326,12 +326,12 @@ function openOrderModal() {
     
     orderSummary.innerHTML = cart.map(item => `
         <div class="order-item">
-            <span>${item.name} Ã— ${item.quantity}</span>
-            <span>${item.price * item.quantity} Ð³Ñ€Ð½</span>
+            <span>${item.name} × ${item.quantity}</span>
+            <span>${item.price * item.quantity} грн</span>
         </div>
     `).join('');
     
-    orderTotal.textContent = `${total} Ð³Ñ€Ð½`;
+    orderTotal.textContent = `${total} грн`;
     
     // Close cart modal, open order modal
     document.getElementById('cartModal').classList.remove('active');
@@ -356,10 +356,10 @@ async function handleOrderSubmit(e) {
     message += `*Ð¢Ð¾Ð²Ð°Ñ€Ð¸:*\n`;
     
     cart.forEach(item => {
-        message += `â€¢ ${item.name} Ã— ${item.quantity} = ${item.price * item.quantity} Ð³Ñ€Ð½\n`;
+        message += `• ${item.name} × ${item.quantity} = ${item.price * item.quantity} грн\n`;
     });
     
-    message += `\nðŸ’° *Ð—Ð°Ð³Ð°Ð»ÑŒÐ½Ð° ÑÑƒÐ¼Ð°:* ${total} Ð³Ñ€Ð½\n`;
+    message += `\nðŸ’° *Ð—Ð°Ð³Ð°Ð»ÑŒÐ½Ð° ÑÑƒÐ¼Ð°:* ${total} грн\n`;
     
     if (comment) {
         message += `\nðŸ’¬ *ÐšÐ¾Ð¼ÐµÐ½Ñ‚Ð°Ñ€:* ${comment}`;
