@@ -1,4 +1,4 @@
-// KRISTINA | SCENT — Catalog JavaScript
+// Dniprowska Parfumerka â€” Catalog JavaScript
 // Google Sheets integration, Cart, Orders
 
 // ========================================
@@ -119,7 +119,7 @@ function displayProducts(products) {
     const catalogGrid = document.getElementById('catalogGrid');
     
     if (products.length === 0) {
-        catalogGrid.innerHTML = '<p class="error-state">Товари не знайдено</p>';
+        catalogGrid.innerHTML = '<p class="error-state">Ð¢Ð¾Ð²Ð°Ñ€Ð¸ Ð½Ðµ Ð·Ð½Ð°Ð¹Ð´ÐµÐ½Ð¾</p>';
         return;
     }
     
@@ -129,20 +129,20 @@ function displayProducts(products) {
             <div class="product-image-wrapper">
                 <img src="${product.imageUrl}" 
                      alt="${product.name}" 
-                     onerror="this.style.display='none'; this.parentElement.style.background='var(--color-pink-light)'; this.parentElement.innerHTML='<div style=\'display:flex;align-items:center;justify-content:center;height:100%;color:var(--color-text-light);font-size:3rem;\'>📦</div>';"
+                     onerror="this.style.display='none'; this.parentElement.style.background='var(--color-pink-light)'; this.parentElement.innerHTML='<div style=\'display:flex;align-items:center;justify-content:center;height:100%;color:var(--color-text-light);font-size:3rem;\'>ðŸ“¦</div>';"
                      onload="this.style.opacity='1';"
                      style="opacity:0; transition: opacity 0.3s;">
                 <div class="product-hover-info">
                     <p class="product-info-text">${product.name}</p>
-                    <p class="product-info-text"><strong>${product.price} грн</strong></p>
+                    <p class="product-info-text"><strong>${product.price} Ð³Ñ€Ð½</strong></p>
                     <button class="add-to-cart-btn" onclick="addToCart('${product.id}')">
-                        🛒 Додати в кошик
+                        ðŸ›’ Ð”Ð¾Ð´Ð°Ñ‚Ð¸ Ð² ÐºÐ¾ÑˆÐ¸Ðº
                     </button>
                 </div>
             </div>
             <div class="product-card-info">
                 <h3 class="product-card-name">${product.name}</h3>
-                <p class="product-card-price">${product.price} грн</p>
+                <p class="product-card-price">${product.price} Ð³Ñ€Ð½</p>
             </div>
         </div>
     `).join('');
@@ -255,7 +255,7 @@ function addToCart(productId) {
     }
     
     saveCart();
-    showToast('✓ Додано в кошик');
+    showToast('âœ“ Ð”Ð¾Ð´Ð°Ð½Ð¾ Ð² ÐºÐ¾ÑˆÐ¸Ðº');
 }
 
 function removeFromCart(productId) {
@@ -283,8 +283,8 @@ function renderCart() {
     const cartTotal = document.getElementById('cartTotal');
     
     if (cart.length === 0) {
-        cartBody.innerHTML = '<div class="cart-empty">Кошик порожній</div>';
-        cartTotal.textContent = '0 грн';
+        cartBody.innerHTML = '<div class="cart-empty">ÐšÐ¾ÑˆÐ¸Ðº Ð¿Ð¾Ñ€Ð¾Ð¶Ð½Ñ–Ð¹</div>';
+        cartTotal.textContent = '0 Ð³Ñ€Ð½';
         return;
     }
     
@@ -295,18 +295,18 @@ function renderCart() {
             <img src="${item.imageUrl}" alt="${item.name}" class="cart-item-image" onerror="this.src='images/products/placeholder.jpg'">
             <div class="cart-item-details">
                 <div class="cart-item-name">${item.name}</div>
-                <div class="cart-item-price">${item.price} грн</div>
+                <div class="cart-item-price">${item.price} Ð³Ñ€Ð½</div>
                 <div class="cart-item-controls">
-                    <button class="qty-btn" onclick="updateQuantity('${item.id}', -1)">−</button>
+                    <button class="qty-btn" onclick="updateQuantity('${item.id}', -1)">âˆ’</button>
                     <span class="cart-item-qty">${item.quantity}</span>
                     <button class="qty-btn" onclick="updateQuantity('${item.id}', 1)">+</button>
-                    <button class="remove-item-btn" onclick="removeFromCart('${item.id}')">Видалити</button>
+                    <button class="remove-item-btn" onclick="removeFromCart('${item.id}')">Ð’Ð¸Ð´Ð°Ð»Ð¸Ñ‚Ð¸</button>
                 </div>
             </div>
         </div>
     `).join('');
     
-    cartTotal.textContent = `${total} грн`;
+    cartTotal.textContent = `${total} Ð³Ñ€Ð½`;
 }
 
 // ========================================
@@ -314,7 +314,7 @@ function renderCart() {
 // ========================================
 function openOrderModal() {
     if (cart.length === 0) {
-        showToast('⚠️ Кошик порожній');
+        showToast('âš ï¸ ÐšÐ¾ÑˆÐ¸Ðº Ð¿Ð¾Ñ€Ð¾Ð¶Ð½Ñ–Ð¹');
         return;
     }
     
@@ -326,12 +326,12 @@ function openOrderModal() {
     
     orderSummary.innerHTML = cart.map(item => `
         <div class="order-item">
-            <span>${item.name} × ${item.quantity}</span>
-            <span>${item.price * item.quantity} грн</span>
+            <span>${item.name} Ã— ${item.quantity}</span>
+            <span>${item.price * item.quantity} Ð³Ñ€Ð½</span>
         </div>
     `).join('');
     
-    orderTotal.textContent = `${total} грн`;
+    orderTotal.textContent = `${total} Ð³Ñ€Ð½`;
     
     // Close cart modal, open order modal
     document.getElementById('cartModal').classList.remove('active');
@@ -349,27 +349,27 @@ async function handleOrderSubmit(e) {
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     
     // Build order message
-    let message = `🛍 *Нове замовлення!*\n\n`;
-    message += `👤 *Клієнт:* ${name}\n`;
-    message += `📞 *Телефон:* ${phone}\n`;
-    message += `🏙 *Місто:* ${city}\n\n`;
-    message += `*Товари:*\n`;
+    let message = `ðŸ› *ÐÐ¾Ð²Ðµ Ð·Ð°Ð¼Ð¾Ð²Ð»ÐµÐ½Ð½Ñ!*\n\n`;
+    message += `ðŸ‘¤ *ÐšÐ»Ñ–Ñ”Ð½Ñ‚:* ${name}\n`;
+    message += `ðŸ“ž *Ð¢ÐµÐ»ÐµÑ„Ð¾Ð½:* ${phone}\n`;
+    message += `ðŸ™ *ÐœÑ–ÑÑ‚Ð¾:* ${city}\n\n`;
+    message += `*Ð¢Ð¾Ð²Ð°Ñ€Ð¸:*\n`;
     
     cart.forEach(item => {
-        message += `• ${item.name} × ${item.quantity} = ${item.price * item.quantity} грн\n`;
+        message += `â€¢ ${item.name} Ã— ${item.quantity} = ${item.price * item.quantity} Ð³Ñ€Ð½\n`;
     });
     
-    message += `\n💰 *Загальна сума:* ${total} грн\n`;
+    message += `\nðŸ’° *Ð—Ð°Ð³Ð°Ð»ÑŒÐ½Ð° ÑÑƒÐ¼Ð°:* ${total} Ð³Ñ€Ð½\n`;
     
     if (comment) {
-        message += `\n💬 *Коментар:* ${comment}`;
+        message += `\nðŸ’¬ *ÐšÐ¾Ð¼ÐµÐ½Ñ‚Ð°Ñ€:* ${comment}`;
     }
     
-    // Send to Telegram через Worker
+    // Send to Telegram Ñ‡ÐµÑ€ÐµÐ· Worker
     const success = await sendToTelegram(message);
     
     if (success) {
-        showToast('✓ Замовлення відправлено!');
+        showToast('âœ“ Ð—Ð°Ð¼Ð¾Ð²Ð»ÐµÐ½Ð½Ñ Ð²Ñ–Ð´Ð¿Ñ€Ð°Ð²Ð»ÐµÐ½Ð¾!');
         
         // Clear cart
         cart = [];
@@ -383,10 +383,10 @@ async function handleOrderSubmit(e) {
         
         // Show success message
         setTimeout(() => {
-            alert('Дякуємо за замовлення! Ми зв\'яжемося з вами найближчим часом.');
+            alert('Ð”ÑÐºÑƒÑ”Ð¼Ð¾ Ð·Ð° Ð·Ð°Ð¼Ð¾Ð²Ð»ÐµÐ½Ð½Ñ! ÐœÐ¸ Ð·Ð²\'ÑÐ¶ÐµÐ¼Ð¾ÑÑ Ð· Ð²Ð°Ð¼Ð¸ Ð½Ð°Ð¹Ð±Ð»Ð¸Ð¶Ñ‡Ð¸Ð¼ Ñ‡Ð°ÑÐ¾Ð¼.');
         }, 300);
     } else {
-        showToast('⚠️ Помилка відправки. Спробуйте ще раз або зв\'яжіться через Telegram.');
+        showToast('âš ï¸ ÐŸÐ¾Ð¼Ð¸Ð»ÐºÐ° Ð²Ñ–Ð´Ð¿Ñ€Ð°Ð²ÐºÐ¸. Ð¡Ð¿Ñ€Ð¾Ð±ÑƒÐ¹Ñ‚Ðµ Ñ‰Ðµ Ñ€Ð°Ð· Ð°Ð±Ð¾ Ð·Ð²\'ÑÐ¶Ñ–Ñ‚ÑŒÑÑ Ñ‡ÐµÑ€ÐµÐ· Telegram.');
     }
 }
 
@@ -426,7 +426,7 @@ async function sendToTelegram(message) {
         return data.ok === true;
     } catch (error) {
         console.error('Telegram error:', error);
-        alert(`Помилка відправки: ${error.message}\n\nПеревірте:\n1. Worker задеплоєний?\n2. TELEGRAM_BOT_TOKEN правильний?\n3. TELEGRAM_CHAT_ID правильний?\n4. Написали боту хоч одне повідомлення?`);
+        alert(`ÐŸÐ¾Ð¼Ð¸Ð»ÐºÐ° Ð²Ñ–Ð´Ð¿Ñ€Ð°Ð²ÐºÐ¸: ${error.message}\n\nÐŸÐµÑ€ÐµÐ²Ñ–Ñ€Ñ‚Ðµ:\n1. Worker Ð·Ð°Ð´ÐµÐ¿Ð»Ð¾Ñ”Ð½Ð¸Ð¹?\n2. TELEGRAM_BOT_TOKEN Ð¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¸Ð¹?\n3. TELEGRAM_CHAT_ID Ð¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¸Ð¹?\n4. ÐÐ°Ð¿Ð¸ÑÐ°Ð»Ð¸ Ð±Ð¾Ñ‚Ñƒ Ñ…Ð¾Ñ‡ Ð¾Ð´Ð½Ðµ Ð¿Ð¾Ð²Ñ–Ð´Ð¾Ð¼Ð»ÐµÐ½Ð½Ñ?`);
         return false;
     }
 }

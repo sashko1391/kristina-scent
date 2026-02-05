@@ -17,22 +17,13 @@
     left: 0;
     width: 100%;
     height: 100%;
-    /* ВАРІАНТ 1: GitHub Raw (найкраще для GitHub Pages) */
-    background-image: url('https://raw.githubusercontent.com/sashko1391/kristina-scent/main/images/brand/aibg.jpg');
-    
-    /* ВАРІАНТ 2: Якщо перший не працює, використай це:
-    background-image: url('https://github.com/sashko1391/kristina-scent/blob/main/images/brand/aibg.jpg?raw=true');
-    */
-    
-    /* ВАРІАНТ 3: Якщо файл в тій же папці (локально):
+    /* Локальний шлях (як в інших місцях проєкту) */
     background-image: url('images/brand/aibg.jpg');
-    */
-    
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
     z-index: 0;
-    opacity: 0.3;
+    opacity: 0.4;
 }
 
 .ai-consultant-section::before {
@@ -42,7 +33,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, rgba(255, 245, 247, 0.95) 0%, rgba(255, 228, 233, 0.9) 100%);
+    background: linear-gradient(135deg, rgba(255, 245, 247, 0.75) 0%, rgba(255, 228, 233, 0.7) 100%);
     z-index: 1;
 }
 

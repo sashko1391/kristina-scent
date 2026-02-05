@@ -1,5 +1,5 @@
 /* ========================================
-   KRISTINA | SCENT — CSS Styles
+   KRISTINA | SCENT â€” CSS Styles
    Mobile-first, Responsive, Soft Luxury
    ======================================== */
 
@@ -142,6 +142,12 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
 }
 
+.logo-img {
+    height: 50px;
+    width: auto;
+    display: block;
+}
+
 /* Mobile Menu Toggle */
 .menu-toggle {
     display: flex;
@@ -253,7 +259,7 @@ h1, h2, h3, h4, h5, h6 {
     object-fit: cover;
 }
 
-/* Overlay для читабельності тексту */
+/* Overlay Ð´Ð»Ñ Ñ‡Ð¸Ñ‚Ð°Ð±ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ñ– Ñ‚ÐµÐºÑÑ‚Ñƒ */
 .hero-slide::before {
     content: '';
     position: absolute;
@@ -874,6 +880,11 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--color-white);
 }
 
+.footer .logo-img {
+    height: 40px;
+    width: auto;
+}
+
 .footer-text {
     color: rgba(255, 255, 255, 0.7);
     margin-top: var(--spacing-sm);
@@ -1025,7 +1036,7 @@ h1, h2, h3, h4, h5, h6 {
         font-size: 3.5rem;
     }
     
-    /* Categories - 3 columns (2 rows × 3) */
+    /* Categories - 3 columns (2 rows Ã— 3) */
     .categories-large-grid {
         grid-template-columns: repeat(3, 1fr);
     }
