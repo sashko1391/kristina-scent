@@ -164,61 +164,63 @@ function displayProducts(products) {
         return;
     }
     
-    catalogGrid.innerHTML = products.map(product => {
+    const html = [];
+    
+    for (const product of products) {
         // Build hover content
-        let hoverContent = '';
+        let hoverHTML = '';
         
         if (product.aiDescription) {
-            // AI description with notes
-            hoverContent = `
-                <div class="product-description">${product.aiDescription.description}</div>
-                <div class="product-notes">
-                    <div class="notes-section">
-                        <span class="notes-label">⬆️ Верх:</span>
-                        <span class="notes-list">${product.aiDescription.top.join(', ')}</span>
-                    </div>
-                    <div class="notes-section">
-                        <span class="notes-label">💖 Серце:</span>
-                        <span class="notes-list">${product.aiDescription.heart.join(', ')}</span>
-                    </div>
-                    <div class="notes-section">
-                        <span class="notes-label">⬇️ База:</span>
-                        <span class="notes-list">${product.aiDescription.base.join(', ')}</span>
-                    </div>
-                </div>
-            `;
+            const desc = product.aiDescription;
+            hoverHTML = '<div class="product-description">' + desc.description + '</div>' +
+                       '<div class="product-notes">' +
+                       '<div class="notes-section">' +
+                       '<span class="notes-label">⬆️ Верх:</span>' +
+                       '<span class="notes-list">' + desc.top.join(', ') + '</span>' +
+                       '</div>' +
+                       '<div class="notes-section">' +
+                       '<span class="notes-label">💖 Серце:</span>' +
+                       '<span class="notes-list">' + desc.heart.join(', ') + '</span>' +
+                       '</div>' +
+                       '<div class="notes-section">' +
+                       '<span class="notes-label">⬇️ База:</span>' +
+                       '<span class="notes-list">' + desc.base.join(', ') + '</span>' +
+                       '</div>' +
+                       '</div>';
         } else {
-            // Fallback - just name
-            hoverContent = `<p class="product-info-text">${product.name}</p>`;
+            hoverHTML = '<p class="product-info-text">' + product.name + '</p>';
         }
         
-        return `
-            <div class="product-card-catalog" data-id="${product.id}">
-                ${product.badge ? `<div class="product-badge">${product.badge}</div>` : ''}
-                <div class="product-image-wrapper">
-                    <img src="${product.imageUrl}" 
-                         alt="${product.name}" 
-                         onerror="this.style.display='none'; this.parentElement.style.background='var(--color-pink-light)'; this.parentElement.innerHTML='<div style=\\'display:flex;align-items:center;justify-content:center;height:100%;color:var(--color-text-light);font-size:3rem;\\'>📦</div>';"
-                         onload="this.style.opacity='1';"
-                         style="opacity:0; transition: opacity 0.3s;">
-                    <div class="product-hover-info">
-                        ${hoverContent}
-                        <p class="product-info-text"><strong>${product.price} грн</strong></p>
-                        <button class="add-to-cart-btn" onclick="addToCart('${product.id}')">
-                            🛒 Додати в кошик
-                        </button>
-                    </div>
-                </div>
-                <div class="product-card-info">
-                    <h3 class="product-card-name">${product.name}</h3>
-                    <p class="product-card-price">${product.price} грн</p>
-                </div>
-            </div>
-        `;
-    }).join('');
+        const badgeHTML = product.badge ? '<div class="product-badge">' + product.badge + '</div>' : '';
+        
+        const card = '<div class="product-card-catalog" data-id="' + product.id + '">' +
+                    badgeHTML +
+                    '<div class="product-image-wrapper">' +
+                    '<img src="' + product.imageUrl + '" ' +
+                    'alt="' + product.name + '" ' +
+                    'onerror="this.style.display=\'none\'" ' +
+                    'onload="this.style.opacity=\'1\';" ' +
+                    'style="opacity:0; transition: opacity 0.3s;">' +
+                    '<div class="product-hover-info">' +
+                    hoverHTML +
+                    '<p class="product-info-text"><strong>' + product.price + ' грн</strong></p>' +
+                    '<button class="add-to-cart-btn" onclick="addToCart(\'' + product.id + '\')">' +
+                    '🛒 Додати в кошик' +
+                    '</button>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="product-card-info">' +
+                    '<h3 class="product-card-name">' + product.name + '</h3>' +
+                    '<p class="product-card-price">' + product.price + ' грн</p>' +
+                    '</div>' +
+                    '</div>';
+        
+        html.push(card);
+    }
+    
+    catalogGrid.innerHTML = html.join('');
 }
-    `).join('');
-}
+
 
 // ========================================
 // FILTERS
