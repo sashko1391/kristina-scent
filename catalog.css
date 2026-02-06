@@ -222,11 +222,14 @@
     flex-direction: column;
     gap: var(--spacing-xs);
     overflow-y: auto;
+    z-index: 10;
+    pointer-events: none;
 }
 
 .product-card-catalog:hover .product-hover-info {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
 }
 
 .product-description {

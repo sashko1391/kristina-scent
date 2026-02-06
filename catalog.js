@@ -1,143 +1,3 @@
-
-// ========================================
-// AI DESCRIPTION GENERATION
-// ========================================
-
-// Load AI descriptions cache
-function getAICache() {
-    const cache = localStorage.getItem(AI_CACHE_KEY);
-    return cache ? JSON.parse(cache) : {};
-}
-
-// Save AI descriptions cache
-function saveAICache(cache) {
-    localStorage.setItem(AI_CACHE_KEY, JSON.stringify(cache));
-}
-
-// Get product description (from cache or generate)
-async function getProductDescription(product) {
-    const cache = getAICache();
-    
-    // Check cache
-    if (cache[product.id]) {
-        return cache[product.id];
-    }
-    
-    // Generate new description
-    return await generateAIDescription(product);
-}
-
-// Generate AI description via Claude API
-async function generateAIDescription(product) {
-    try {
-        console.log(`Generating AI description for: ${product.name}`);
-        
-        const prompt = `Опиши парфум "${product.name}" українською мовою.
-
-Формат відповіді (тільки JSON, без пояснень):
-{
-  "description": "2-3 речення опису аромату",
-  "top_notes": ["нота1", "нота2", "нота3"],
-  "heart_notes": ["нота1", "нота2"],
-  "base_notes": ["нота1", "нота2"]
-}
-
-Важливо:
-- Опис має бути коротким (2-3 речення)
-- Ноти - реальні компоненти цього парфуму
-- Якщо парфум невідомий - створи правдоподібний опис на основі назви`;
-
-        const response = await fetch(WORKER_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action: 'chat',
-                system: 'Ти експерт з парфумерії. Відповідай тільки у форматі JSON.',
-                messages: [
-                    { role: 'user', content: prompt }
-                ]
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error('AI API error');
-        }
-
-        const data = await response.json();
-        let aiText = data.content[0].text;
-        
-        // Remove markdown code blocks if present
-        aiText = aiText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-        
-        const parsed = JSON.parse(aiText.trim());
-        
-        // Save to cache
-        const cache = getAICache();
-        cache[product.id] = parsed;
-        saveAICache(cache);
-        
-        console.log(`AI description generated for: ${product.name}`);
-        return parsed;
-        
-    } catch (error) {
-        console.error('Error generating AI description:', error);
-        // Return fallback
-        return {
-            description: `${product.name} - чудовий аромат для особливих моментів.`,
-            top_notes: ['Цитрус', 'Свіжість'],
-            heart_notes: ['Квіти'],
-            base_notes: ['Мускус']
-        };
-    }
-}
-
-// Update product card with AI description
-async function enrichProductCard(productId) {
-    const card = document.querySelector(`[data-id="${productId}"]`);
-    if (!card) return;
-    
-    const hoverInfo = card.querySelector('.product-hover-info');
-    if (!hoverInfo) return;
-    
-    const product = allProducts.find(p => p.id === productId);
-    if (!product) return;
-    
-    // Show loading state
-    const existingContent = hoverInfo.querySelector('.product-description');
-    if (existingContent && existingContent.textContent.includes('Генерується')) {
-        return; // Already loading
-    }
-    
-    // Get or generate description
-    const desc = await getProductDescription(product);
-    
-    // Update card HTML
-    hoverInfo.innerHTML = `
-        <div class="product-description">${desc.description}</div>
-        <div class="product-notes">
-            <div class="notes-section">
-                <span class="notes-label">Верхні ноти:</span>
-                <span class="notes-list">${desc.top_notes.join(', ')}</span>
-            </div>
-            <div class="notes-section">
-                <span class="notes-label">Серце:</span>
-                <span class="notes-list">${desc.heart_notes.join(', ')}</span>
-            </div>
-            <div class="notes-section">
-                <span class="notes-label">База:</span>
-                <span class="notes-list">${desc.base_notes.join(', ')}</span>
-            </div>
-        </div>
-        <p class="product-info-text"><strong>${product.price} грн</strong></p>
-        <button class="add-to-cart-btn" onclick="addToCart('${product.id}')">
-            🛒 Додати в кошик
-        </button>
-    `;
-}
-
-// ========================================
 // Dniprowska Parfumerka — Catalog JavaScript
 // Google Sheets integration, Cart, Orders
 
@@ -148,14 +8,8 @@ async function enrichProductCard(productId) {
 // Google Sheets Published CSV URL
 const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1T_JIYKlQR54PWPCH028P2TdVLiQOrdacdGY3kH3edjE/export?format=csv&gid=0';
 
-// Fallback JSON (якщо Google Sheets недоступний)
-const FALLBACK_JSON_URL = 'products-fallback.json';
-
 // Cloudflare Worker URL
 const WORKER_URL = 'https://kristina-scent-api.sashko1391.workers.dev';
-
-// Cache key for AI descriptions
-const AI_CACHE_KEY = 'dniprowska_ai_descriptions';
 
 // ========================================
 // STATE
@@ -200,50 +54,21 @@ async function loadProducts() {
         loading.style.display = 'block';
         error.style.display = 'none';
         
-        console.log('Loading products from Google Sheets:', GOOGLE_SHEET_URL);
+        console.log('Loading products from:', GOOGLE_SHEET_URL);
+        const response = await fetch(GOOGLE_SHEET_URL);
+        const csvText = await response.text();
         
-        // Try Google Sheets with timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+        console.log('CSV loaded, length:', csvText.length);
+        allProducts = parseCSV(csvText);
         
-        try {
-            const response = await fetch(GOOGLE_SHEET_URL, {
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-            
-            if (!response.ok) throw new Error('Google Sheets response not OK');
-            
-            const csvText = await response.text();
-            console.log('CSV loaded successfully, length:', csvText.length);
-            
-            allProducts = parseCSV(csvText);
-            console.log('Products parsed from Google Sheets:', allProducts.length);
-            
-        } catch (sheetsError) {
-            console.warn('Google Sheets failed, trying fallback JSON:', sheetsError.message);
-            
-            // Fallback to local JSON
-            const fallbackResponse = await fetch(FALLBACK_JSON_URL);
-            if (!fallbackResponse.ok) throw new Error('Both Google Sheets and fallback failed');
-            
-            const fallbackData = await fallbackResponse.json();
-            allProducts = fallbackData.products;
-            console.log('Products loaded from fallback JSON:', allProducts.length);
-            
-            // Show warning to user
-            showToast('⚠️ Завантажено з резервної копії');
-        }
-        
-        if (allProducts.length === 0) {
-            throw new Error('No products found');
-        }
+        console.log('Products parsed:', allProducts.length);
+        console.log('First product example:', allProducts[0]);
         
         loading.style.display = 'none';
         displayProducts(allProducts);
         
     } catch (err) {
-        console.error('Critical error loading products:', err);
+        console.error('Error loading products:', err);
         loading.style.display = 'none';
         error.style.display = 'block';
     }
@@ -269,20 +94,9 @@ function parseCSV(csv) {
         const imageUrl = values[4]?.replace(/"/g, '').trim();
         const directLink = values[5]?.replace(/"/g, '').trim();
         const badge = values[6]?.replace(/"/g, '').trim();
-        const aiDescription = values[7]?.replace(/"/g, '').trim(); // Нова колонка H
         
         if (id && name && price) {
             const finalImageUrl = directLink || imageUrl;
-            
-            // Parse AI description JSON
-            let parsedDescription = null;
-            if (aiDescription) {
-                try {
-                    parsedDescription = JSON.parse(aiDescription);
-                } catch (e) {
-                    console.warn(`Failed to parse AI description for ${name}`);
-                }
-            }
             
             products.push({
                 id,
@@ -290,8 +104,7 @@ function parseCSV(csv) {
                 category,
                 price,
                 imageUrl: finalImageUrl,
-                badge,
-                aiDescription: parsedDescription
+                badge
             });
         }
     }
@@ -310,58 +123,29 @@ function displayProducts(products) {
         return;
     }
     
-    catalogGrid.innerHTML = products.map(product => {
-        // Prepare hover content
-        let hoverContent = '';
-        
-        if (product.aiDescription) {
-            // Show AI-generated description
-            hoverContent = `
-                <div class="product-description">${product.aiDescription.description}</div>
-                <div class="product-notes">
-                    <div class="notes-section">
-                        <span class="notes-label">⬆️ Верх:</span>
-                        <span class="notes-list">${product.aiDescription.top.join(', ')}</span>
-                    </div>
-                    <div class="notes-section">
-                        <span class="notes-label">💖 Серце:</span>
-                        <span class="notes-list">${product.aiDescription.heart.join(', ')}</span>
-                    </div>
-                    <div class="notes-section">
-                        <span class="notes-label">⬇️ База:</span>
-                        <span class="notes-list">${product.aiDescription.base.join(', ')}</span>
-                    </div>
-                </div>
-            `;
-        } else {
-            // Fallback if no AI description
-            hoverContent = `<p class="product-info-text">${product.name}</p>`;
-        }
-        
-        return `
-            <div class="product-card-catalog" data-id="${product.id}">
-                ${product.badge ? `<div class="product-badge">${product.badge}</div>` : ''}
-                <div class="product-image-wrapper">
-                    <img src="${product.imageUrl}" 
-                         alt="${product.name}" 
-                         onerror="this.style.display='none'; this.parentElement.style.background='var(--color-pink-light)'; this.parentElement.innerHTML='<div style=\\'display:flex;align-items:center;justify-content:center;height:100%;color:var(--color-text-light);font-size:3rem;\\'>📦</div>';"
-                         onload="this.style.opacity='1';"
-                         style="opacity:0; transition: opacity 0.3s;">
-                    <div class="product-hover-info">
-                        ${hoverContent}
-                        <p class="product-info-text"><strong>${product.price} грн</strong></p>
-                        <button class="add-to-cart-btn" onclick="addToCart('${product.id}')">
-                            🛒 Додати в кошик
-                        </button>
-                    </div>
-                </div>
-                <div class="product-card-info">
-                    <h3 class="product-card-name">${product.name}</h3>
-                    <p class="product-card-price">${product.price} грн</p>
+    catalogGrid.innerHTML = products.map(product => `
+        <div class="product-card-catalog" data-id="${product.id}">
+            ${product.badge ? `<div class="product-badge">${product.badge}</div>` : ''}
+            <div class="product-image-wrapper">
+                <img src="${product.imageUrl}" 
+                     alt="${product.name}" 
+                     onerror="this.style.display='none'; this.parentElement.style.background='var(--color-pink-light)'; this.parentElement.innerHTML='<div style=\'display:flex;align-items:center;justify-content:center;height:100%;color:var(--color-text-light);font-size:3rem;\'>📦</div>';"
+                     onload="this.style.opacity='1';"
+                     style="opacity:0; transition: opacity 0.3s;">
+                <div class="product-hover-info">
+                    <p class="product-info-text">${product.name}</p>
+                    <p class="product-info-text"><strong>${product.price} грн</strong></p>
+                    <button class="add-to-cart-btn" onclick="addToCart('${product.id}')">
+                        🛒 Додати в кошик
+                    </button>
                 </div>
             </div>
-        `;
-    }).join('');
+            <div class="product-card-info">
+                <h3 class="product-card-name">${product.name}</h3>
+                <p class="product-card-price">${product.price} грн</p>
+            </div>
+        </div>
+    `).join('');
 }
 
 // ========================================
@@ -375,7 +159,9 @@ function initializeEventListeners() {
     if (searchInput) {
         searchInput.addEventListener('input', function(e) {
             const query = e.target.value.trim();
-            searchClear.style.display = query ? 'block' : 'none';
+            if (searchClear) {
+                searchClear.style.display = query ? 'block' : 'none';
+            }
             searchProducts(query);
         });
     }
@@ -442,12 +228,13 @@ function initializeEventListeners() {
     orderForm.addEventListener('submit', handleOrderSubmit);
 }
 
+
 // ========================================
 // SEARCH FUNCTIONALITY
 // ========================================
 function searchProducts(query) {
     if (!query) {
-        // If search is empty, apply current filter
+        // Restore current filter
         const activeFilter = document.querySelector('.filter-btn.active');
         const category = activeFilter ? activeFilter.dataset.category : 'all';
         filterProducts(category);
@@ -564,147 +351,6 @@ function renderCart() {
     cartTotal.textContent = `${total} грн`;
 }
 
-// ========================================
-
-// ========================================
-// AI DESCRIPTION GENERATION
-// ========================================
-
-// Load AI descriptions cache
-function getAICache() {
-    const cache = localStorage.getItem(AI_CACHE_KEY);
-    return cache ? JSON.parse(cache) : {};
-}
-
-// Save AI descriptions cache
-function saveAICache(cache) {
-    localStorage.setItem(AI_CACHE_KEY, JSON.stringify(cache));
-}
-
-// Get product description (from cache or generate)
-async function getProductDescription(product) {
-    const cache = getAICache();
-    
-    // Check cache
-    if (cache[product.id]) {
-        return cache[product.id];
-    }
-    
-    // Generate new description
-    return await generateAIDescription(product);
-}
-
-// Generate AI description via Claude API
-async function generateAIDescription(product) {
-    try {
-        console.log(`Generating AI description for: ${product.name}`);
-        
-        const prompt = `Опиши парфум "${product.name}" українською мовою.
-
-Формат відповіді (тільки JSON, без пояснень):
-{
-  "description": "2-3 речення опису аромату",
-  "top_notes": ["нота1", "нота2", "нота3"],
-  "heart_notes": ["нота1", "нота2"],
-  "base_notes": ["нота1", "нота2"]
-}
-
-Важливо:
-- Опис має бути коротким (2-3 речення)
-- Ноти - реальні компоненти цього парфуму
-- Якщо парфум невідомий - створи правдоподібний опис на основі назви`;
-
-        const response = await fetch(WORKER_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action: 'chat',
-                system: 'Ти експерт з парфумерії. Відповідай тільки у форматі JSON.',
-                messages: [
-                    { role: 'user', content: prompt }
-                ]
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error('AI API error');
-        }
-
-        const data = await response.json();
-        let aiText = data.content[0].text;
-        
-        // Remove markdown code blocks if present
-        aiText = aiText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-        
-        const parsed = JSON.parse(aiText.trim());
-        
-        // Save to cache
-        const cache = getAICache();
-        cache[product.id] = parsed;
-        saveAICache(cache);
-        
-        console.log(`AI description generated for: ${product.name}`);
-        return parsed;
-        
-    } catch (error) {
-        console.error('Error generating AI description:', error);
-        // Return fallback
-        return {
-            description: `${product.name} - чудовий аромат для особливих моментів.`,
-            top_notes: ['Цитрус', 'Свіжість'],
-            heart_notes: ['Квіти'],
-            base_notes: ['Мускус']
-        };
-    }
-}
-
-// Update product card with AI description
-async function enrichProductCard(productId) {
-    const card = document.querySelector(`[data-id="${productId}"]`);
-    if (!card) return;
-    
-    const hoverInfo = card.querySelector('.product-hover-info');
-    if (!hoverInfo) return;
-    
-    const product = allProducts.find(p => p.id === productId);
-    if (!product) return;
-    
-    // Show loading state
-    const existingContent = hoverInfo.querySelector('.product-description');
-    if (existingContent && existingContent.textContent.includes('Генерується')) {
-        return; // Already loading
-    }
-    
-    // Get or generate description
-    const desc = await getProductDescription(product);
-    
-    // Update card HTML
-    hoverInfo.innerHTML = `
-        <div class="product-description">${desc.description}</div>
-        <div class="product-notes">
-            <div class="notes-section">
-                <span class="notes-label">Верхні ноти:</span>
-                <span class="notes-list">${desc.top_notes.join(', ')}</span>
-            </div>
-            <div class="notes-section">
-                <span class="notes-label">Серце:</span>
-                <span class="notes-list">${desc.heart_notes.join(', ')}</span>
-            </div>
-            <div class="notes-section">
-                <span class="notes-label">База:</span>
-                <span class="notes-list">${desc.base_notes.join(', ')}</span>
-            </div>
-        </div>
-        <p class="product-info-text"><strong>${product.price} грн</strong></p>
-        <button class="add-to-cart-btn" onclick="addToCart('${product.id}')">
-            🛒 Додати в кошик
-        </button>
-    `;
-}
-
-// ========================================
 // ========================================
 // ORDER PROCESSING
 // ========================================
