@@ -1,38 +1,31 @@
-// Dniprowska Parfumerka — Catalog JavaScript
-// Google Sheets integration, Cart, Orders
+// ==========================================
+// Dniprowska Parfumerka - Catalog
+// Version 2.3 - Clean & Working
+// ==========================================
 
-// ========================================
-// CONFIGURATION
-// ========================================
-
-// Google Sheets Published CSV URL
+// CONFIG
 const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1T_JIYKlQR54PWPCH028P2TdVLiQOrdacdGY3kH3edjE/export?format=csv&gid=0';
-
-// Cloudflare Worker URL
+const FALLBACK_JSON_URL = 'products-fallback.json';
 const WORKER_URL = 'https://kristina-scent-api.sashko1391.workers.dev';
 
-// ========================================
 // STATE
-// ========================================
 let allProducts = [];
 let cart = [];
 
-// ========================================
+// ==========================================
 // INITIALIZATION
-// ========================================
+// ==========================================
 document.addEventListener('DOMContentLoaded', function() {
     loadCart();
     updateCartUI();
     loadProducts();
     initializeEventListeners();
     
-    // Handle URL parameters for category filtering
     const urlParams = new URLSearchParams(window.location.search);
     const categoryParam = urlParams.get('category');
     if (categoryParam) {
-        // Wait for products to load, then filter
         setTimeout(() => {
-            const filterBtn = document.querySelector(`[data-category="${categoryParam}"]`);
+            const filterBtn = document.querySelector('[data-category="' + categoryParam + '"]');
             if (filterBtn) {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 filterBtn.classList.add('active');
@@ -42,23 +35,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// ========================================
-// GOOGLE SHEETS DATA LOADING
-// ========================================
+// ==========================================
+// LOAD PRODUCTS
+// ==========================================
 async function loadProducts() {
     const loading = document.getElementById('loading');
     const error = document.getElementById('error');
-    const catalogGrid = document.getElementById('catalogGrid');
     
     try {
         loading.style.display = 'block';
         error.style.display = 'none';
         
-        console.log('Loading products from Google Sheets...');
+        console.log('Loading products...');
         
-        // Try Google Sheets with timeout
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
         
         try {
             const response = await fetch(GOOGLE_SHEET_URL, {
@@ -66,26 +57,24 @@ async function loadProducts() {
             });
             clearTimeout(timeoutId);
             
-            if (!response.ok) throw new Error('Google Sheets response not OK');
+            if (!response.ok) throw new Error('Sheets not OK');
             
             const csvText = await response.text();
-            console.log('CSV loaded successfully, length:', csvText.length);
+            console.log('CSV loaded, length:', csvText.length);
             
             allProducts = parseCSV(csvText);
-            console.log('Products parsed from Google Sheets:', allProducts.length);
+            console.log('Products from Sheets:', allProducts.length);
             
         } catch (sheetsError) {
-            console.warn('Google Sheets failed, trying fallback JSON:', sheetsError.message);
+            console.warn('Google Sheets failed, using fallback:', sheetsError.message);
             
-            // Fallback to local JSON
             const fallbackResponse = await fetch(FALLBACK_JSON_URL);
-            if (!fallbackResponse.ok) throw new Error('Both Google Sheets and fallback failed');
+            if (!fallbackResponse.ok) throw new Error('Both sources failed');
             
             const fallbackData = await fallbackResponse.json();
             allProducts = fallbackData.products;
-            console.log('Products loaded from fallback JSON:', allProducts.length);
+            console.log('Products from fallback:', allProducts.length);
             
-            // Show warning to user
             showToast('⚠️ Завантажено з резервної копії');
         }
         
@@ -97,65 +86,63 @@ async function loadProducts() {
         displayProducts(allProducts);
         
     } catch (err) {
-        console.error('Critical error loading products:', err);
+        console.error('Error loading products:', err);
         loading.style.display = 'none';
         error.style.display = 'block';
     }
 }
 
+// ==========================================
+// PARSE CSV
+// ==========================================
 function parseCSV(csv) {
     const lines = csv.split('\n');
     const products = [];
     
-    // Skip header row (index 0)
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
         
-        // Parse CSV line (handle commas in quotes)
         const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
         if (!values || values.length < 5) continue;
         
-        const id = values[0]?.replace(/"/g, '').trim();
-        const name = values[1]?.replace(/"/g, '').trim();
-        const category = values[2]?.replace(/"/g, '').trim().toLowerCase();
-        const price = parseInt(values[3]?.replace(/"/g, '').trim()) || 0;
-        const imageUrl = values[4]?.replace(/"/g, '').trim();
-        const directLink = values[5]?.replace(/"/g, '').trim();
-        const badge = values[6]?.replace(/"/g, '').trim();
+        const id = values[0] ? values[0].replace(/"/g, '').trim() : '';
+        const name = values[1] ? values[1].replace(/"/g, '').trim() : '';
+        const category = values[2] ? values[2].replace(/"/g, '').trim().toLowerCase() : '';
+        const price = parseInt(values[3] ? values[3].replace(/"/g, '').trim() : '0') || 0;
+        const imageUrl = values[4] ? values[4].replace(/"/g, '').trim() : '';
+        const directLink = values[5] ? values[5].replace(/"/g, '').trim() : '';
+        const badge = values[6] ? values[6].replace(/"/g, '').trim() : '';
+        const aiDescRaw = values[7] ? values[7].replace(/"/g, '').trim() : '';
         
-        if (id && name && price) {
-            const finalImageUrl = directLink || imageUrl;
-            
-            products.push({
-                id,
-                name,
-                category,
-                price,
-                imageUrl: finalImageUrl,
-                badge
-            });
+        if (!id || !name || !price) continue;
+        
+        let aiDescription = null;
+        if (aiDescRaw) {
+            try {
+                aiDescription = JSON.parse(aiDescRaw);
+            } catch (e) {
+                console.warn('Failed to parse AI description for:', name);
+            }
         }
+        
+        products.push({
+            id: id,
+            name: name,
+            category: category,
+            price: price,
+            imageUrl: directLink || imageUrl,
+            badge: badge,
+            aiDescription: aiDescription
+        });
     }
     
     return products;
 }
 
-// ========================================
-// PRODUCT DISPLAY
-// ========================================
-function displayProducts(products) {
-    const catalogGrid = document.getElementById('catalogGrid');
-    
-    if (products.length === 0) {
-        catalogGrid.innerHTML = '<p class="error-state">Товари не знайдено</p>';
-        return;
-    }
-    
-    catalogGrid.innerHTML = products.map(product => `
-        <div class="product-card-catalog" data-id="${product.id}">
-            ${product.badge ? `<div class="product-badge">${product.badge}</div>` : ''}
-            <div class="product-image-wrapper">
+// ==========================================
+// DISPLAY PRODUCTS
+// ==========================================
 function displayProducts(products) {
     const catalogGrid = document.getElementById('catalogGrid');
     
@@ -166,54 +153,49 @@ function displayProducts(products) {
     
     const html = [];
     
-    for (const product of products) {
-        // Build hover content
-        let hoverHTML = '';
+    for (let i = 0; i < products.length; i++) {
+        const p = products[i];
         
-        if (product.aiDescription) {
-            const desc = product.aiDescription;
-            hoverHTML = '<div class="product-description">' + desc.description + '</div>' +
-                       '<div class="product-notes">' +
-                       '<div class="notes-section">' +
-                       '<span class="notes-label">⬆️ Верх:</span>' +
-                       '<span class="notes-list">' + desc.top.join(', ') + '</span>' +
-                       '</div>' +
-                       '<div class="notes-section">' +
-                       '<span class="notes-label">💖 Серце:</span>' +
-                       '<span class="notes-list">' + desc.heart.join(', ') + '</span>' +
-                       '</div>' +
-                       '<div class="notes-section">' +
-                       '<span class="notes-label">⬇️ База:</span>' +
-                       '<span class="notes-list">' + desc.base.join(', ') + '</span>' +
-                       '</div>' +
-                       '</div>';
+        let hoverContent = '';
+        
+        if (p.aiDescription) {
+            hoverContent += '<div class="product-description">' + p.aiDescription.description + '</div>';
+            hoverContent += '<div class="product-notes">';
+            hoverContent += '<div class="notes-section">';
+            hoverContent += '<span class="notes-label">⬆️ Верх:</span>';
+            hoverContent += '<span class="notes-list">' + p.aiDescription.top.join(', ') + '</span>';
+            hoverContent += '</div>';
+            hoverContent += '<div class="notes-section">';
+            hoverContent += '<span class="notes-label">💖 Серце:</span>';
+            hoverContent += '<span class="notes-list">' + p.aiDescription.heart.join(', ') + '</span>';
+            hoverContent += '</div>';
+            hoverContent += '<div class="notes-section">';
+            hoverContent += '<span class="notes-label">⬇️ База:</span>';
+            hoverContent += '<span class="notes-list">' + p.aiDescription.base.join(', ') + '</span>';
+            hoverContent += '</div>';
+            hoverContent += '</div>';
         } else {
-            hoverHTML = '<p class="product-info-text">' + product.name + '</p>';
+            hoverContent = '<p class="product-info-text">' + p.name + '</p>';
         }
         
-        const badgeHTML = product.badge ? '<div class="product-badge">' + product.badge + '</div>' : '';
+        let card = '<div class="product-card-catalog" data-id="' + p.id + '">';
         
-        const card = '<div class="product-card-catalog" data-id="' + product.id + '">' +
-                    badgeHTML +
-                    '<div class="product-image-wrapper">' +
-                    '<img src="' + product.imageUrl + '" ' +
-                    'alt="' + product.name + '" ' +
-                    'onerror="this.style.display=\'none\'" ' +
-                    'onload="this.style.opacity=\'1\';" ' +
-                    'style="opacity:0; transition: opacity 0.3s;">' +
-                    '<div class="product-hover-info">' +
-                    hoverHTML +
-                    '<p class="product-info-text"><strong>' + product.price + ' грн</strong></p>' +
-                    '<button class="add-to-cart-btn" onclick="addToCart(\'' + product.id + '\')">' +
-                    '🛒 Додати в кошик' +
-                    '</button>' +
-                    '</div>' +
-                    '</div>' +
-                    '<div class="product-card-info">' +
-                    '<h3 class="product-card-name">' + product.name + '</h3>' +
-                    '<p class="product-card-price">' + product.price + ' грн</p>' +
-                    '</div>' +
-                    '</div>';
+        if (p.badge) {
+            card += '<div class="product-badge">' + p.badge + '</div>';
+        }
+        
+        card += '<div class="product-image-wrapper">';
+        card += '<img src="' + p.imageUrl + '" alt="' + p.name + '" onerror="this.style.display=\'none\'" onload="this.style.opacity=\'1\';" style="opacity:0; transition: opacity 0.3s;">';
+        card += '<div class="product-hover-info">';
+        card += hoverContent;
+        card += '<p class="product-info-text"><strong>' + p.price + ' грн</strong></p>';
+        card += '<button class="add-to-cart-btn" onclick="addToCart(\'' + p.id + '\')">🛒 Додати в кошик</button>';
+        card += '</div></div>';
+        
+        card += '<div class="product-card-info">';
+        card += '<h3 class="product-card-name">' + p.name + '</h3>';
+        card += '<p class="product-card-price">' + p.price + ' грн</p>';
+        card += '</div></div>';
         
         html.push(card);
     }
@@ -221,12 +203,43 @@ function displayProducts(products) {
     catalogGrid.innerHTML = html.join('');
 }
 
+// ==========================================
+// SEARCH
+// ==========================================
+function searchProducts(query) {
+    if (!query) {
+        const activeFilter = document.querySelector('.filter-btn.active');
+        const category = activeFilter ? activeFilter.dataset.category : 'all';
+        filterProducts(category);
+        return;
+    }
+    
+    const lowerQuery = query.toLowerCase();
+    const filtered = allProducts.filter(function(p) {
+        return p.name.toLowerCase().indexOf(lowerQuery) !== -1;
+    });
+    
+    displayProducts(filtered);
+}
 
-// ========================================
+// ==========================================
 // FILTERS
-// ========================================
+// ==========================================
+function filterProducts(category) {
+    if (category === 'all') {
+        displayProducts(allProducts);
+    } else {
+        const filtered = allProducts.filter(function(p) {
+            return p.category === category;
+        });
+        displayProducts(filtered);
+    }
+}
+
+// ==========================================
+// EVENT LISTENERS
+// ==========================================
 function initializeEventListeners() {
-    // Search functionality
     const searchInput = document.getElementById('searchInput');
     const searchClear = document.getElementById('searchClear');
     
@@ -248,118 +261,66 @@ function initializeEventListeners() {
         });
     }
     
-    // Filter buttons
     const filterButtons = document.querySelectorAll('.filter-btn');
-    filterButtons.forEach(btn => {
+    filterButtons.forEach(function(btn) {
         btn.addEventListener('click', function() {
-            filterButtons.forEach(b => b.classList.remove('active'));
+            filterButtons.forEach(function(b) {
+                b.classList.remove('active');
+            });
             this.classList.add('active');
-            
-            const category = this.dataset.category;
-            filterProducts(category);
+            filterProducts(this.dataset.category);
         });
     });
     
-    // Cart button
-    const cartButton = document.getElementById('cartButton');
+    const cartBtn = document.querySelector('.cart-button');
     const cartModal = document.getElementById('cartModal');
-    const cartClose = document.getElementById('cartClose');
+    const closeCart = document.getElementById('closeCart');
     
-    cartButton.addEventListener('click', () => {
-        cartModal.classList.add('active');
-        renderCart();
-    });
+    if (cartBtn) {
+        cartBtn.addEventListener('click', function() {
+            updateCartModal();
+            cartModal.style.display = 'flex';
+        });
+    }
     
-    cartClose.addEventListener('click', () => {
-        cartModal.classList.remove('active');
-    });
+    if (closeCart) {
+        closeCart.addEventListener('click', function() {
+            cartModal.style.display = 'none';
+        });
+    }
     
-    cartModal.addEventListener('click', (e) => {
+    window.addEventListener('click', function(e) {
         if (e.target === cartModal) {
-            cartModal.classList.remove('active');
+            cartModal.style.display = 'none';
         }
     });
-    
-    // Checkout button
-    const checkoutButton = document.getElementById('checkoutButton');
-    checkoutButton.addEventListener('click', openOrderModal);
-    
-    // Order modal
-    const orderModal = document.getElementById('orderModal');
-    const orderClose = document.getElementById('orderClose');
-    const orderForm = document.getElementById('orderForm');
-    
-    orderClose.addEventListener('click', () => {
-        orderModal.classList.remove('active');
-    });
-    
-    orderModal.addEventListener('click', (e) => {
-        if (e.target === orderModal) {
-            orderModal.classList.remove('active');
-        }
-    });
-    
-    orderForm.addEventListener('submit', handleOrderSubmit);
 }
 
-
-// ========================================
-// SEARCH FUNCTIONALITY
-// ========================================
-function searchProducts(query) {
-    if (!query) {
-        // Restore current filter
-        const activeFilter = document.querySelector('.filter-btn.active');
-        const category = activeFilter ? activeFilter.dataset.category : 'all';
-        filterProducts(category);
-        return;
-    }
-    
-    const lowerQuery = query.toLowerCase();
-    const filtered = allProducts.filter(p => 
-        p.name.toLowerCase().includes(lowerQuery)
-    );
-    displayProducts(filtered);
-}
-
-function filterProducts(category) {
-    if (category === 'all') {
-        displayProducts(allProducts);
-    } else {
-        const filtered = allProducts.filter(p => p.category === category);
-        displayProducts(filtered);
-    }
-}
-
-// ========================================
-// CART FUNCTIONALITY
-// ========================================
+// ==========================================
+// CART
+// ==========================================
 function loadCart() {
-    const saved = localStorage.getItem('kristina_cart');
-    if (saved) {
-        cart = JSON.parse(saved);
-    }
+    const saved = localStorage.getItem('cart');
+    cart = saved ? JSON.parse(saved) : [];
 }
 
 function saveCart() {
-    localStorage.setItem('kristina_cart', JSON.stringify(cart));
-    updateCartUI();
-}
-
-function updateCartUI() {
-    const cartCount = document.getElementById('cartCount');
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    cartCount.textContent = totalItems;
+    localStorage.setItem('cart', JSON.stringify(cart));
 }
 
 function addToCart(productId) {
-    const product = allProducts.find(p => p.id === productId);
+    const product = allProducts.find(function(p) {
+        return p.id === productId;
+    });
+    
     if (!product) return;
     
-    const existingItem = cart.find(item => item.id === productId);
+    const existingItem = cart.find(function(item) {
+        return item.id === productId;
+    });
     
     if (existingItem) {
-        existingItem.quantity += 1;
+        existingItem.quantity++;
     } else {
         cart.push({
             id: product.id,
@@ -371,218 +332,115 @@ function addToCart(productId) {
     }
     
     saveCart();
-    showToast('✓ Додано в кошик');
+    updateCartUI();
+    showToast('✅ ' + product.name + ' додано в кошик');
 }
 
 function removeFromCart(productId) {
-    cart = cart.filter(item => item.id !== productId);
+    cart = cart.filter(function(item) {
+        return item.id !== productId;
+    });
     saveCart();
-    renderCart();
+    updateCartUI();
+    updateCartModal();
 }
 
 function updateQuantity(productId, change) {
-    const item = cart.find(item => item.id === productId);
-    if (!item) return;
+    const item = cart.find(function(i) {
+        return i.id === productId;
+    });
     
-    item.quantity += change;
-    
-    if (item.quantity <= 0) {
-        removeFromCart(productId);
-    } else {
-        saveCart();
-        renderCart();
+    if (item) {
+        item.quantity += change;
+        if (item.quantity <= 0) {
+            removeFromCart(productId);
+        } else {
+            saveCart();
+            updateCartModal();
+        }
     }
 }
 
-function renderCart() {
-    const cartBody = document.getElementById('cartBody');
+function updateCartUI() {
+    const cartCount = document.querySelector('.cart-count');
+    const totalItems = cart.reduce(function(sum, item) {
+        return sum + item.quantity;
+    }, 0);
+    
+    if (cartCount) {
+        cartCount.textContent = totalItems;
+        cartCount.style.display = totalItems > 0 ? 'flex' : 'none';
+    }
+}
+
+function updateCartModal() {
+    const cartBody = document.getElementById('cartItems');
     const cartTotal = document.getElementById('cartTotal');
+    const checkoutBtn = document.getElementById('checkoutBtn');
     
     if (cart.length === 0) {
-        cartBody.innerHTML = '<div class="cart-empty">Кошик порожній</div>';
+        cartBody.innerHTML = '<p class="empty-cart">Кошик порожній</p>';
         cartTotal.textContent = '0 грн';
+        if (checkoutBtn) checkoutBtn.style.display = 'none';
         return;
     }
     
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    if (checkoutBtn) checkoutBtn.style.display = 'block';
     
-    cartBody.innerHTML = cart.map(item => `
-        <div class="cart-item">
-            <img src="${item.imageUrl}" alt="${item.name}" class="cart-item-image" onerror="this.src='images/products/placeholder.jpg'">
-            <div class="cart-item-details">
-                <div class="cart-item-name">${item.name}</div>
-                <div class="cart-item-price">${item.price} грн</div>
-                <div class="cart-item-controls">
-                    <button class="qty-btn" onclick="updateQuantity('${item.id}', -1)">−</button>
-                    <span class="cart-item-qty">${item.quantity}</span>
-                    <button class="qty-btn" onclick="updateQuantity('${item.id}', 1)">+</button>
-                    <button class="remove-item-btn" onclick="removeFromCart('${item.id}')">Видалити</button>
-                </div>
-            </div>
-        </div>
-    `).join('');
+    const total = cart.reduce(function(sum, item) {
+        return sum + (item.price * item.quantity);
+    }, 0);
     
-    cartTotal.textContent = `${total} грн`;
+    const itemsHTML = [];
+    for (let i = 0; i < cart.length; i++) {
+        const item = cart[i];
+        
+        let html = '<div class="cart-item">';
+        html += '<img src="' + item.imageUrl + '" alt="' + item.name + '" class="cart-item-image" onerror="this.src=\'images/products/placeholder.jpg\'">';
+        html += '<div class="cart-item-details">';
+        html += '<div class="cart-item-name">' + item.name + '</div>';
+        html += '<div class="cart-item-price">' + item.price + ' грн</div>';
+        html += '<div class="cart-item-controls">';
+        html += '<button class="qty-btn" onclick="updateQuantity(\'' + item.id + '\', -1)">−</button>';
+        html += '<span class="cart-item-qty">' + item.quantity + '</span>';
+        html += '<button class="qty-btn" onclick="updateQuantity(\'' + item.id + '\', 1)">+</button>';
+        html += '<button class="remove-item-btn" onclick="removeFromCart(\'' + item.id + '\')">Видалити</button>';
+        html += '</div></div></div>';
+        
+        itemsHTML.push(html);
+    }
+    
+    cartBody.innerHTML = itemsHTML.join('');
+    cartTotal.textContent = total + ' грн';
 }
 
-// ========================================
-// ORDER PROCESSING
-// ========================================
-function openOrderModal() {
+function checkout() {
     if (cart.length === 0) {
         showToast('⚠️ Кошик порожній');
         return;
     }
-    
-    const orderModal = document.getElementById('orderModal');
-    const orderSummary = document.getElementById('orderSummary');
-    const orderTotal = document.getElementById('orderTotal');
-    
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    
-    orderSummary.innerHTML = cart.map(item => `
-        <div class="order-item">
-            <span>${item.name} × ${item.quantity}</span>
-            <span>${item.price * item.quantity} грн</span>
-        </div>
-    `).join('');
-    
-    orderTotal.textContent = `${total} грн`;
-    
-    // Close cart modal, open order modal
-    document.getElementById('cartModal').classList.remove('active');
-    orderModal.classList.add('active');
+    window.location.href = 'order.html';
 }
 
-async function handleOrderSubmit(e) {
-    e.preventDefault();
-    
-    const name = document.getElementById('customerName').value.trim();
-    const phone = document.getElementById('customerPhone').value.trim();
-    const city = document.getElementById('customerCity').value.trim();
-    const comment = document.getElementById('customerComment').value.trim();
-    
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    
-    // Build order message
-    let message = `🛒 *Нове замовлення!*\n\n`;
-    message += `👤 *Клієнт:* ${name}\n`;
-    message += `📞 *Телефон:* ${phone}\n`;
-    message += `🏙 *Місто:* ${city}\n\n`;
-    message += `*Товари:*\n`;
-    
-    cart.forEach(item => {
-        message += `• ${item.name} × ${item.quantity} = ${item.price * item.quantity} грн\n`;
-    });
-    
-    message += `\n💰 *Загальна сума:* ${total} грн\n`;
-    
-    if (comment) {
-        message += `\n💬 *Коментар:* ${comment}`;
-    }
-    
-    // Send to Telegram через Worker
-    const success = await sendToTelegram(message);
-    
-    if (success) {
-        showToast('✓ Замовлення відправлено!');
-        
-        // Clear cart
-        cart = [];
-        saveCart();
-        
-        // Close modal
-        document.getElementById('orderModal').classList.remove('active');
-        
-        // Reset form
-        document.getElementById('orderForm').reset();
-        
-        // Show success message
-        setTimeout(() => {
-            alert('Дякуємо за замовлення! Ми зв\'яжемося з вами найближчим часом.');
-        }, 300);
-    } else {
-        showToast('⚠️ Помилка відправки. Спробуйте ще раз або зв\'яжіться через Telegram.');
-    }
-}
-
-async function sendToTelegram(message) {
-    try {
-        console.log('Sending order to Telegram via Worker...');
-        console.log('Worker URL:', WORKER_URL);
-        console.log('Message length:', message.length);
-        
-        const response = await fetch(WORKER_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action: 'telegram',
-                message: message
-            })
-        });
-        
-        console.log('Response status:', response.status);
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Worker response error:', errorText);
-            throw new Error(`Worker error: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('Telegram response:', data);
-        
-        if (data.ok === false) {
-            console.error('Telegram API error:', data.error);
-            throw new Error(data.error || 'Telegram API error');
-        }
-        
-        return data.ok === true;
-    } catch (error) {
-        console.error('Telegram error:', error);
-        alert(`Помилка відправки: ${error.message}\n\nПеревірте:\n1. Worker задеплоєний?\n2. TELEGRAM_BOT_TOKEN правильний?\n3. TELEGRAM_CHAT_ID правильний?\n4. Написали боту хоч одне повідомлення?`);
-        return false;
-    }
-}
-
-// ========================================
-// UI HELPERS
-// ========================================
+// ==========================================
+// TOAST
+// ==========================================
 function showToast(message) {
-    const toast = document.createElement('div');
+    let toast = document.getElementById('toast');
+    
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#2C2C2C;color:white;padding:12px 24px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:10000;opacity:0;transition:opacity 0.3s;';
+        document.body.appendChild(toast);
+    }
+    
     toast.textContent = message;
-    toast.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: #2C2C2C;
-        color: white;
-        padding: 15px 25px;
-        border-radius: 8px;
-        z-index: 100000;
-        animation: slideIn 0.3s ease;
-    `;
+    toast.style.opacity = '1';
     
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-    }, 2000);
+    setTimeout(function() {
+        toast.style.opacity = '0';
+    }, 3000);
 }
 
-// Add animation styles
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from { transform: translateX(400px); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(400px); opacity: 0; }
-    }
-`;
-document.head.appendChild(style);
+console.log('✅ Catalog.js v2.3 loaded');
