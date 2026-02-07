@@ -156,27 +156,39 @@ function displayProducts(products) {
     for (let i = 0; i < products.length; i++) {
         const p = products[i];
         
-        let hoverContent = '';
+        // Simple hover content - always works
+        let hoverHTML = '<div class="hover-simple-content">';
+        hoverHTML += '<h3 style="margin:0 0 15px 0;color:#2C2C2C;font-size:18px;">' + p.name + '</h3>';
         
-        if (p.aiDescription) {
-            hoverContent += '<div class="product-description">' + p.aiDescription.description + '</div>';
-            hoverContent += '<div class="product-notes">';
-            hoverContent += '<div class="notes-section">';
-            hoverContent += '<span class="notes-label">⬆️ Верх:</span>';
-            hoverContent += '<span class="notes-list">' + p.aiDescription.top.join(', ') + '</span>';
-            hoverContent += '</div>';
-            hoverContent += '<div class="notes-section">';
-            hoverContent += '<span class="notes-label">💖 Серце:</span>';
-            hoverContent += '<span class="notes-list">' + p.aiDescription.heart.join(', ') + '</span>';
-            hoverContent += '</div>';
-            hoverContent += '<div class="notes-section">';
-            hoverContent += '<span class="notes-label">⬇️ База:</span>';
-            hoverContent += '<span class="notes-list">' + p.aiDescription.base.join(', ') + '</span>';
-            hoverContent += '</div>';
-            hoverContent += '</div>';
-        } else {
-            hoverContent = '<p class="product-info-text">' + p.name + '</p>';
+        // Try to show AI description if available
+        if (p.aiDescription && p.aiDescription.description) {
+            hoverHTML += '<p style="font-size:14px;color:#666;line-height:1.6;margin-bottom:15px;">' + p.aiDescription.description + '</p>';
+            
+            if (p.aiDescription.top && p.aiDescription.top.length > 0) {
+                hoverHTML += '<div style="font-size:13px;margin-bottom:8px;">';
+                hoverHTML += '<strong style="color:#D4AF37;">⬆️ Верх:</strong> ';
+                hoverHTML += '<span style="color:#666;">' + p.aiDescription.top.join(', ') + '</span>';
+                hoverHTML += '</div>';
+            }
+            
+            if (p.aiDescription.heart && p.aiDescription.heart.length > 0) {
+                hoverHTML += '<div style="font-size:13px;margin-bottom:8px;">';
+                hoverHTML += '<strong style="color:#D4AF37;">💖 Серце:</strong> ';
+                hoverHTML += '<span style="color:#666;">' + p.aiDescription.heart.join(', ') + '</span>';
+                hoverHTML += '</div>';
+            }
+            
+            if (p.aiDescription.base && p.aiDescription.base.length > 0) {
+                hoverHTML += '<div style="font-size:13px;margin-bottom:15px;">';
+                hoverHTML += '<strong style="color:#D4AF37;">⬇️ База:</strong> ';
+                hoverHTML += '<span style="color:#666;">' + p.aiDescription.base.join(', ') + '</span>';
+                hoverHTML += '</div>';
+            }
         }
+        
+        hoverHTML += '<p style="font-size:16px;font-weight:bold;color:#2C2C2C;margin:15px 0;"><strong>' + p.price + ' грн</strong></p>';
+        hoverHTML += '<button class="add-to-cart-btn" onclick="addToCart(\'' + p.id + '\')">🛒 Додати в кошик</button>';
+        hoverHTML += '</div>';
         
         let card = '<div class="product-card-catalog" data-id="' + p.id + '">';
         
@@ -187,9 +199,7 @@ function displayProducts(products) {
         card += '<div class="product-image-wrapper">';
         card += '<img src="' + p.imageUrl + '" alt="' + p.name + '" onerror="this.style.display=\'none\'" onload="this.style.opacity=\'1\';" style="opacity:0; transition: opacity 0.3s;">';
         card += '<div class="product-hover-info">';
-        card += hoverContent;
-        card += '<p class="product-info-text"><strong>' + p.price + ' грн</strong></p>';
-        card += '<button class="add-to-cart-btn" onclick="addToCart(\'' + p.id + '\')">🛒 Додати в кошик</button>';
+        card += hoverHTML;
         card += '</div></div>';
         
         card += '<div class="product-card-info">';
@@ -201,6 +211,8 @@ function displayProducts(products) {
     }
     
     catalogGrid.innerHTML = html.join('');
+    
+    console.log('✅ Displayed', products.length, 'products with hover');
 }
 
 // ==========================================
