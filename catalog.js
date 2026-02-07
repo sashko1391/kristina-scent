@@ -48,6 +48,19 @@ async function loadProducts() {
         
         console.log('Loading products...');
         
+        // Load AI descriptions first
+        let aiDescriptions = {};
+        try {
+            const descResponse = await fetch('ai-descriptions.json');
+            if (descResponse.ok) {
+                const descData = await descResponse.json();
+                aiDescriptions = descData.descriptions;
+                console.log('AI descriptions loaded:', Object.keys(aiDescriptions).length);
+            }
+        } catch (descError) {
+            console.warn('Could not load AI descriptions:', descError.message);
+        }
+        
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
         
@@ -63,6 +76,15 @@ async function loadProducts() {
             console.log('CSV loaded, length:', csvText.length);
             
             allProducts = parseCSV(csvText);
+            
+            // Merge AI descriptions with products
+            allProducts = allProducts.map(function(p) {
+                if (aiDescriptions[p.id]) {
+                    p.aiDescription = aiDescriptions[p.id];
+                }
+                return p;
+            });
+            
             console.log('Products from Sheets:', allProducts.length);
             
         } catch (sheetsError) {
@@ -73,6 +95,15 @@ async function loadProducts() {
             
             const fallbackData = await fallbackResponse.json();
             allProducts = fallbackData.products;
+            
+            // Merge AI descriptions with fallback products too
+            allProducts = allProducts.map(function(p) {
+                if (aiDescriptions[p.id]) {
+                    p.aiDescription = aiDescriptions[p.id];
+                }
+                return p;
+            });
+            
             console.log('Products from fallback:', allProducts.length);
             
             showToast('⚠️ Завантажено з резервної копії');
@@ -113,18 +144,9 @@ function parseCSV(csv) {
         const imageUrl = values[4] ? values[4].replace(/"/g, '').trim() : '';
         const directLink = values[5] ? values[5].replace(/"/g, '').trim() : '';
         const badge = values[6] ? values[6].replace(/"/g, '').trim() : '';
-        const aiDescRaw = values[7] ? values[7].replace(/"/g, '').trim() : '';
+        // Column H (aiDescription) is now loaded from separate JSON file
         
         if (!id || !name || !price) continue;
-        
-        let aiDescription = null;
-        if (aiDescRaw) {
-            try {
-                aiDescription = JSON.parse(aiDescRaw);
-            } catch (e) {
-                console.warn('Failed to parse AI description for:', name);
-            }
-        }
         
         products.push({
             id: id,
@@ -133,7 +155,7 @@ function parseCSV(csv) {
             price: price,
             imageUrl: directLink || imageUrl,
             badge: badge,
-            aiDescription: aiDescription
+            aiDescription: null // Will be merged from ai-descriptions.json
         });
     }
     
