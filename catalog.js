@@ -568,11 +568,11 @@ async function submitOrderDirect() {
     
     // Build order message
     var orderText = '\uD83D\uDED2 Нове замовлення!\n\n';
-    orderText += '\uD83D\uDC64 Ім\'я: ' + name + '\n';
-    orderText += '\uD83D\uDCF1 Телефон: ' + phone + '\n';
-    orderText += '\uD83D\uDCCD Адреса: ' + address + '\n';
+    orderText += '\uD83D\uDC64 Ім\'я: ' + escapeMarkdown(name) + '\n';
+    orderText += '\uD83D\uDCF1 Телефон: ' + escapeMarkdown(phone) + '\n';
+    orderText += '\uD83D\uDCCD Адреса: ' + escapeMarkdown(address) + '\n';
     if (comment) {
-        orderText += '\uD83D\uDCAC Коментар: ' + comment + '\n';
+        orderText += '\uD83D\uDCAC Коментар: ' + escapeMarkdown(comment) + '\n';
     }
     orderText += '\n\uD83D\uDCE6 Товари:\n';
     
@@ -581,10 +581,15 @@ async function submitOrderDirect() {
         var item = cart[i];
         var itemTotal = item.price * item.quantity;
         total += itemTotal;
-        orderText += '\u2022 ' + item.name + ' x' + item.quantity + ' = ' + itemTotal + ' грн\n';
+        orderText += '\u2022 ' + escapeMarkdown(item.name) + ' x' + item.quantity + ' = ' + itemTotal + ' грн\n';
     }
     
     orderText += '\n\uD83D\uDCB0 Всього: ' + total + ' грн';
+    
+    // Escape Markdown special chars for Telegram
+    function escapeMarkdown(text) {
+        return text.replace(/([_*`\[\]])/g, '\\$1');
+    }
     
     var workerSuccess = false;
     
@@ -595,7 +600,7 @@ async function submitOrderDirect() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                action: 'order',
+                action: 'telegram',
                 message: orderText
             })
         });
