@@ -215,22 +215,32 @@
     background: rgba(255, 255, 255, 0.98) !important;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    padding: var(--spacing-md);
+    padding: 16px !important;
     opacity: 0 !important;
     visibility: hidden !important;
     transition: opacity 0.3s ease, visibility 0.3s ease !important;
     display: flex !important;
     flex-direction: column !important;
-    justify-content: center !important;
-    gap: var(--spacing-xs);
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+    gap: 0 !important;
     overflow-y: auto;
+    overflow-x: hidden;
     z-index: 100 !important;
     pointer-events: none !important;
-    text-align: center;
+    text-align: left !important;
+    /* Scroll starts from top */
+    scroll-behavior: smooth;
 }
 
-.product-image-wrapper:hover .product-hover-info,
+/* Reset scroll position on hover */
 .product-card-catalog:hover .product-hover-info {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+.product-image-wrapper:hover .product-hover-info {
     opacity: 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
@@ -240,6 +250,32 @@
 .product-card-catalog:hover .product-image-wrapper .product-hover-info {
     opacity: 1 !important;
     visibility: visible !important;
+}
+
+/* Content inside hover - left aligned */
+.product-hover-info > * {
+    width: 100%;
+    text-align: left !important;
+}
+
+.hover-simple-content {
+    width: 100%;
+    text-align: left !important;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-height: 100%;
+}
+
+.hover-simple-content h3,
+.hover-simple-content p,
+.hover-simple-content div {
+    text-align: left !important;
+}
+
+/* Button at bottom */
+.hover-simple-content .add-to-cart-btn {
+    margin-top: auto !important;
 }
 
 .product-description {
@@ -291,6 +327,14 @@
     cursor: pointer;
     transition: var(--transition);
     margin-top: auto;
+    width: 100%;
+    text-align: center;
+    font-size: 14px;
+}
+
+.add-to-cart-btn:hover {
+    background: #B8960F;
+    transform: translateY(-1px);
 }
 
 .add-to-cart-btn:hover {

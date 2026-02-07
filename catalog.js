@@ -180,35 +180,36 @@ function displayProducts(products) {
         
         // Simple hover content - always works
         let hoverHTML = '<div class="hover-simple-content">';
-        hoverHTML += '<h3 style="margin:0 0 15px 0;color:#2C2C2C;font-size:18px;">' + p.name + '</h3>';
+        hoverHTML += '<h3 style="margin:0 0 10px 0;color:#2C2C2C;font-size:16px;font-weight:600;">' + p.name + '</h3>';
         
         // Try to show AI description if available
         if (p.aiDescription && p.aiDescription.description) {
-            hoverHTML += '<p style="font-size:14px;color:#666;line-height:1.6;margin-bottom:15px;">' + p.aiDescription.description + '</p>';
+            hoverHTML += '<p style="font-size:14px;color:#666;line-height:1.5;margin-bottom:12px;">' + p.aiDescription.description + '</p>';
             
             if (p.aiDescription.top && p.aiDescription.top.length > 0) {
-                hoverHTML += '<div style="font-size:13px;margin-bottom:8px;">';
+                hoverHTML += '<div style="font-size:13px;margin-bottom:6px;">';
                 hoverHTML += '<strong style="color:#D4AF37;">⬆️ Верх:</strong> ';
                 hoverHTML += '<span style="color:#666;">' + p.aiDescription.top.join(', ') + '</span>';
                 hoverHTML += '</div>';
             }
             
             if (p.aiDescription.heart && p.aiDescription.heart.length > 0) {
-                hoverHTML += '<div style="font-size:13px;margin-bottom:8px;">';
+                hoverHTML += '<div style="font-size:13px;margin-bottom:6px;">';
                 hoverHTML += '<strong style="color:#D4AF37;">💖 Серце:</strong> ';
                 hoverHTML += '<span style="color:#666;">' + p.aiDescription.heart.join(', ') + '</span>';
                 hoverHTML += '</div>';
             }
             
             if (p.aiDescription.base && p.aiDescription.base.length > 0) {
-                hoverHTML += '<div style="font-size:13px;margin-bottom:15px;">';
+                hoverHTML += '<div style="font-size:13px;margin-bottom:12px;">';
                 hoverHTML += '<strong style="color:#D4AF37;">⬇️ База:</strong> ';
                 hoverHTML += '<span style="color:#666;">' + p.aiDescription.base.join(', ') + '</span>';
                 hoverHTML += '</div>';
             }
         }
         
-        hoverHTML += '<p style="font-size:16px;font-weight:bold;color:#2C2C2C;margin:15px 0;"><strong>' + p.price + ' грн</strong></p>';
+        hoverHTML += '<div style="flex:1;"></div>'; // Spacer
+        hoverHTML += '<p style="font-size:18px;font-weight:bold;color:#2C2C2C;margin:8px 0;"><strong>' + p.price + ' грн</strong></p>';
         hoverHTML += '<button class="add-to-cart-btn" onclick="addToCart(\'' + p.id + '\')">🛒 Додати в кошик</button>';
         hoverHTML += '</div>';
         
