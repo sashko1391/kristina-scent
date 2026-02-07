@@ -1,4 +1,4 @@
-// KRISTINA | SCENT â€” JavaScript
+// Dniprowska Parfumerka — JavaScript
 // Mobile menu, smooth scroll, active states
 
 document.addEventListener('DOMContentLoaded', function() {

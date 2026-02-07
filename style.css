@@ -1,5 +1,5 @@
 /* ========================================
-   KRISTINA | SCENT â€” CSS Styles
+   Dniprowska Parfumerka — CSS Styles
    Mobile-first, Responsive, Soft Luxury
    ======================================== */
 
@@ -148,8 +148,14 @@ h1, h2, h3, h4, h5, h6 {
     flex-direction: column;
     gap: 5px;
     background: transparent;
-    padding: var(--spacing-xs);
+    padding: 12px;
+    position: relative;
     z-index: 1001;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .menu-toggle span {
@@ -253,7 +259,7 @@ h1, h2, h3, h4, h5, h6 {
     object-fit: cover;
 }
 
-/* Overlay Ð´Ð»Ñ Ñ‡Ð¸Ñ‚Ð°Ð±ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ñ– Ñ‚ÐµÐºÑÑ‚Ñƒ */
+/* Overlay для читабельності тексту */
 .hero-slide::before {
     content: '';
     position: absolute;
@@ -890,6 +896,22 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 0.875rem;
 }
 
+.footer-credit {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.8rem;
+    margin-top: var(--spacing-xs);
+}
+
+.footer-credit a {
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-credit a:hover {
+    color: var(--color-warm-gold);
+}
+
 /* Tablet Styles (768px and up) */
 @media (min-width: 768px) {
     .container {
@@ -1025,7 +1047,7 @@ h1, h2, h3, h4, h5, h6 {
         font-size: 3.5rem;
     }
     
-    /* Categories - 3 columns (2 rows Ã— 3) */
+    /* Categories - 3 columns (2 rows × 3) */
     .categories-large-grid {
         grid-template-columns: repeat(3, 1fr);
     }

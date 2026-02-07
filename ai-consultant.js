@@ -38,18 +38,18 @@ async function loadProducts() {
         console.log('Loading products from Google Sheets...');
         
         // Try Google Sheets with timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        var controller = new AbortController();
+        var timeoutId = setTimeout(function() { controller.abort(); }, 5000);
         
         try {
-            const response = await fetch(GOOGLE_SHEET_URL, {
+            var response = await fetch(GOOGLE_SHEET_URL, {
                 signal: controller.signal
             });
             clearTimeout(timeoutId);
             
             if (!response.ok) throw new Error('Google Sheets not available');
             
-            const csvText = await response.text();
+            var csvText = await response.text();
             productsData = parseCSV(csvText);
             console.log('Products loaded from Google Sheets:', productsData.length);
             
@@ -57,10 +57,10 @@ async function loadProducts() {
             console.warn('Google Sheets failed, using fallback:', sheetsError.message);
             
             // Fallback to local JSON
-            const fallbackResponse = await fetch(FALLBACK_JSON_URL);
+            var fallbackResponse = await fetch(FALLBACK_JSON_URL);
             if (!fallbackResponse.ok) throw new Error('Both sources failed');
             
-            const fallbackData = await fallbackResponse.json();
+            var fallbackData = await fallbackResponse.json();
             productsData = fallbackData.products;
             console.log('Products loaded from fallback:', productsData.length);
         }
@@ -72,29 +72,29 @@ async function loadProducts() {
 }
 
 function parseCSV(csv) {
-    const lines = csv.split('\n');
-    const products = [];
+    var lines = csv.split('\n');
+    var products = [];
     
-    for (let i = 1; i < lines.length; i++) {
-        const line = lines[i].trim();
+    for (var i = 1; i < lines.length; i++) {
+        var line = lines[i].trim();
         if (!line) continue;
         
-        const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+        var values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
         if (!values || values.length < 5) continue;
         
-        const id = values[0]?.replace(/"/g, '').trim();
-        const name = values[1]?.replace(/"/g, '').trim();
-        const category = values[2]?.replace(/"/g, '').trim();
-        const price = parseInt(values[3]?.replace(/"/g, '').trim()) || 0;
-        const badge = values[6]?.replace(/"/g, '').trim();
+        var id = values[0] ? values[0].replace(/"/g, '').trim() : '';
+        var name = values[1] ? values[1].replace(/"/g, '').trim() : '';
+        var category = values[2] ? values[2].replace(/"/g, '').trim() : '';
+        var price = parseInt(values[3] ? values[3].replace(/"/g, '').trim() : '0') || 0;
+        var badge = values[6] ? values[6].replace(/"/g, '').trim() : '';
         
         if (id && name && price) {
             products.push({
-                id,
-                name,
-                category,
-                price,
-                badge
+                id: id,
+                name: name,
+                category: category,
+                price: price,
+                badge: badge
             });
         }
     }
@@ -106,15 +106,13 @@ function parseCSV(csv) {
 // CHAT INITIALIZATION
 // ========================================
 function initializeChat() {
-    const welcomeMessage = `Вітаю! 👋 Я — ваш віртуальний консультант у Dniprowska Parfumerka.
-
-Я знаю всі ${productsData.length} ароматів нашого магазину та можу допомогти вам:
-• Підібрати парфум за вашими уподобаннями
-• Розповісти про характеристики ароматів
-• Порекомендувати щось особливе
-• Оформити замовлення
-
-Що вас цікавить? 🌸`;
+    var welcomeMessage = 'Вітаю! \uD83D\uDC4B Я — ваш віртуальний консультант у Dniprowska Parfumerka.\n\n' +
+        'Я знаю всі ' + productsData.length + ' ароматів нашого магазину та можу допомогти вам:\n' +
+        '\u2022 Підібрати парфум за вашими уподобаннями\n' +
+        '\u2022 Розповісти про характеристики ароматів\n' +
+        '\u2022 Порекомендувати щось особливе\n' +
+        '\u2022 Оформити замовлення\n\n' +
+        'Що вас цікавить? \uD83C\uDF38';
 
     addMessage('assistant', welcomeMessage);
 }
@@ -123,12 +121,12 @@ function initializeChat() {
 // EVENT LISTENERS
 // ========================================
 function initializeEventListeners() {
-    const chatForm = document.getElementById('chatForm');
-    const chatInput = document.getElementById('chatInput');
+    var chatForm = document.getElementById('chatForm');
+    var chatInput = document.getElementById('chatInput');
     
     chatForm.addEventListener('submit', async function(e) {
         e.preventDefault();
-        const message = chatInput.value.trim();
+        var message = chatInput.value.trim();
         if (!message) return;
         
         chatInput.value = '';
@@ -136,9 +134,9 @@ function initializeEventListeners() {
     });
     
     // Quick questions
-    document.querySelectorAll('.quick-btn').forEach(btn => {
+    document.querySelectorAll('.quick-btn').forEach(function(btn) {
         btn.addEventListener('click', async function() {
-            const question = this.dataset.question;
+            var question = this.dataset.question;
             await handleUserMessage(question);
         });
     });
@@ -162,7 +160,7 @@ async function handleUserMessage(message) {
     
     try {
         // Call Claude API через Worker
-        const response = await callClaudeAPI(message);
+        var response = await callClaudeAPI(message);
         
         // Hide typing indicator
         hideTyping();
@@ -178,7 +176,7 @@ async function handleUserMessage(message) {
         
         // Check if user wants to order
         if (detectOrderIntent(message)) {
-            const extractedProducts = extractProductsFromConversation();
+            var extractedProducts = extractProductsFromConversation();
             if (extractedProducts.length > 0) {
                 currentOrder = extractedProducts;
                 addOrderButton();
@@ -196,9 +194,9 @@ async function handleUserMessage(message) {
 // CLAUDE API CALL (через Cloudflare Worker)
 // ========================================
 async function callClaudeAPI(userMessage) {
-    const systemPrompt = buildSystemPrompt();
+    var systemPrompt = buildSystemPrompt();
     
-    const response = await fetch(WORKER_URL, {
+    var response = await fetch(WORKER_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -211,69 +209,60 @@ async function callClaudeAPI(userMessage) {
     });
     
     if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `API error: ${response.status}`);
+        var errorData = await response.json().catch(function() { return {}; });
+        throw new Error(errorData.error || 'API error: ' + response.status);
     }
     
-    const data = await response.json();
+    var data = await response.json();
     return data.content[0].text;
 }
 
 function buildSystemPrompt() {
-    const productsInfo = productsData.map(p => 
-        `- ${p.name} (${getCategoryName(p.category)}, ${p.price} грн)${p.badge ? ' [' + p.badge + ']' : ''}`
-    ).join('\n');
+    var productsInfo = productsData.map(function(p) {
+        return '- ' + p.name + ' (' + getCategoryName(p.category) + ', ' + p.price + ' грн)' + (p.badge ? ' [' + p.badge + ']' : '');
+    }).join('\n');
     
-    return `Ти — віртуальний консультант парфумерного магазину Dniprowska Parfumerka.
-
-ТВОЯ РОЛЬ:
-- Допомагаєш клієнтам підібрати парфум
-- Консультуєш щодо ароматів, нот, стійкості
-- Рекомендуєш товари з нашого асортименту
-- Оформлюєш замовлення
-
-НАШІ ТОВАРИ:
-${productsInfo}
-
-КАТЕГОРІЇ:
-- Розпив — можливість спробувати аромат у меншому об'ємі
-- Жіноча парфумерія
-- Чоловіча парфумерія  
-- Унісекс
-- Нішева парфумерія
-- Аромадифузори
-
-ПРАВИЛА:
-1. Завжди відповідай українською мовою
-2. Будь дружнім, теплим та професійним
-3. Рекомендуй тільки товари з нашого списку
-4. Якщо не знаєш характеристик конкретного аромату — чесно скажи це
-5. Коли клієнт хоче замовити — підтверди список і запропонуй оформити
-6. Використовуй емодзі для теплоти (але помірно)
-7. Пропонуй розпив як спосіб спробувати аромат перед покупкою
-
-ІНФОРМАЦІЯ ПРО АРОМАТИ:
-Якщо клієнт запитує про конкретні характеристики аромату (ноти, стійкість, сезонність) — використовуй своє знання про парфумерію, але зазначай що це загальна інформація і краще спробувати розпив.
-
-ОФОРМЛЕННЯ ЗАМОВЛЕННЯ:
-Коли клієнт готовий замовити, запитай:
-- Ім'я
-- Телефон  
-- Місто
-
-Формат відповіді про замовлення:
-"Чудово! Ось ваше замовлення:
-[список товарів]
-Загальна сума: [сума] грн
-
-Для оформлення напишіть, будь ласка:
-- Ваше ім'я
-- Телефон
-- Місто доставки"`;
+    return 'Ти — віртуальний консультант парфумерного магазину Dniprowska Parfumerka.\n\n' +
+        'ТВОЯ РОЛЬ:\n' +
+        '- Допомагаєш клієнтам підібрати парфум\n' +
+        '- Консультуєш щодо ароматів, нот, стійкості\n' +
+        '- Рекомендуєш товари з нашого асортименту\n' +
+        '- Оформлюєш замовлення\n\n' +
+        'НАШІ ТОВАРИ:\n' + productsInfo + '\n\n' +
+        'КАТЕГОРІЇ:\n' +
+        '- Розпив — можливість спробувати аромат у меншому об\'ємі\n' +
+        '- Жіноча парфумерія\n' +
+        '- Чоловіча парфумерія\n' +
+        '- Унісекс\n' +
+        '- Нішева парфумерія\n' +
+        '- Аромадифузори\n\n' +
+        'ПРАВИЛА:\n' +
+        '1. Завжди відповідай українською мовою\n' +
+        '2. Будь дружнім, теплим та професійним\n' +
+        '3. Рекомендуй тільки товари з нашого списку\n' +
+        '4. Якщо не знаєш характеристик конкретного аромату — чесно скажи це\n' +
+        '5. Коли клієнт хоче замовити — підтверди список і запропонуй оформити\n' +
+        '6. Використовуй емоджі для теплоти (але помірно)\n' +
+        '7. Пропонуй розпив як спосіб спробувати аромат перед покупкою\n\n' +
+        'ІНФОРМАЦІЯ ПРО АРОМАТИ:\n' +
+        'Якщо клієнт запитує про конкретні характеристики аромату (ноти, стійкість, сезонність) — використовуй своє знання про парфумерію, але зазначай що це загальна інформація і краще спробувати розпив.\n\n' +
+        'ОФОРМЛЕННЯ ЗАМОВЛЕННЯ:\n' +
+        'Коли клієнт готовий замовити, запитай:\n' +
+        '- Ім\'я\n' +
+        '- Телефон\n' +
+        '- Місто\n\n' +
+        'Формат відповіді про замовлення:\n' +
+        '"Чудово! Ось ваше замовлення:\n' +
+        '[список товарів]\n' +
+        'Загальна сума: [сума] грн\n\n' +
+        'Для оформлення напишіть, будь ласка:\n' +
+        '- Ваше ім\'я\n' +
+        '- Телефон\n' +
+        '- Місто доставки"';
 }
 
 function getCategoryName(category) {
-    const names = {
+    var names = {
         'rozpyv': 'Розпив',
         'female': 'Жіноча',
         'male': 'Чоловіча',
@@ -288,18 +277,20 @@ function getCategoryName(category) {
 // ORDER DETECTION & HANDLING
 // ========================================
 function detectOrderIntent(message) {
-    const orderKeywords = ['замовити', 'замовлення', 'купити', 'хочу', 'візьму', 'оформити'];
-    return orderKeywords.some(keyword => message.toLowerCase().includes(keyword));
+    var orderKeywords = ['замовити', 'замовлення', 'купити', 'хочу', 'візьму', 'оформити'];
+    return orderKeywords.some(function(keyword) {
+        return message.toLowerCase().indexOf(keyword) !== -1;
+    });
 }
 
 function extractProductsFromConversation() {
-    const mentioned = [];
-    const lastMessages = conversationHistory.slice(-4);
+    var mentioned = [];
+    var lastMessages = conversationHistory.slice(-4);
     
-    lastMessages.forEach(msg => {
-        productsData.forEach(product => {
-            if (msg.content.toLowerCase().includes(product.name.toLowerCase())) {
-                if (!mentioned.find(p => p.id === product.id)) {
+    lastMessages.forEach(function(msg) {
+        productsData.forEach(function(product) {
+            if (msg.content.toLowerCase().indexOf(product.name.toLowerCase()) !== -1) {
+                if (!mentioned.find(function(p) { return p.id === product.id; })) {
                     mentioned.push(product);
                 }
             }
@@ -310,17 +301,15 @@ function extractProductsFromConversation() {
 }
 
 function addOrderButton() {
-    const chatMessages = document.getElementById('chatMessages');
-    const buttonHtml = `
-        <div class="message assistant">
-            <div class="message-avatar">🤖</div>
-            <div class="message-bubble">
-                <button class="order-button" onclick="confirmOrder()">
-                    📦 Оформити замовлення
-                </button>
-            </div>
-        </div>
-    `;
+    var chatMessages = document.getElementById('chatMessages');
+    var buttonHtml = '<div class="message assistant">' +
+        '<div class="message-avatar">\uD83E\uDD16</div>' +
+        '<div class="message-bubble">' +
+        '<button class="order-button" onclick="confirmOrder()">' +
+        '\uD83D\uDCE6 Оформити замовлення' +
+        '</button>' +
+        '</div>' +
+        '</div>';
     chatMessages.insertAdjacentHTML('beforeend', buttonHtml);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
@@ -331,10 +320,12 @@ async function confirmOrder() {
         return;
     }
     
-    const orderSummary = currentOrder.map(p => `• ${p.name} — ${p.price} грн`).join('\n');
-    const total = currentOrder.reduce((sum, p) => sum + p.price, 0);
+    var orderSummary = currentOrder.map(function(p) {
+        return '\u2022 ' + p.name + ' — ' + p.price + ' грн';
+    }).join('\n');
+    var total = currentOrder.reduce(function(sum, p) { return sum + p.price; }, 0);
     
-    const message = `Відмінно! Ваше замовлення:\n\n${orderSummary}\n\n💰 Загальна сума: ${total} грн\n\nДля оформлення напишіть:\n1. Ваше ім'я\n2. Телефон\n3. Місто`;
+    var message = 'Відмінно! Ваше замовлення:\n\n' + orderSummary + '\n\n\uD83D\uDCB0 Загальна сума: ' + total + ' грн\n\nДля оформлення напишіть:\n1. Ваше ім\'я\n2. Телефон\n3. Місто';
     
     addMessage('assistant', message);
 }
@@ -343,18 +334,16 @@ async function confirmOrder() {
 // UI FUNCTIONS
 // ========================================
 function addMessage(role, content) {
-    const chatMessages = document.getElementById('chatMessages');
-    const time = new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+    var chatMessages = document.getElementById('chatMessages');
+    var time = new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
     
-    const messageHtml = `
-        <div class="message ${role}">
-            <div class="message-avatar">${role === 'assistant' ? '🤖' : '👤'}</div>
-            <div class="message-bubble">
-                ${content.replace(/\n/g, '<br>')}
-                <div class="message-time">${time}</div>
-            </div>
-        </div>
-    `;
+    var messageHtml = '<div class="message ' + role + '">' +
+        '<div class="message-avatar">' + (role === 'assistant' ? '\uD83E\uDD16' : '\uD83D\uDC64') + '</div>' +
+        '<div class="message-bubble">' +
+        content.replace(/\n/g, '<br>') +
+        '<div class="message-time">' + time + '</div>' +
+        '</div>' +
+        '</div>';
     
     chatMessages.insertAdjacentHTML('beforeend', messageHtml);
     chatMessages.scrollTop = chatMessages.scrollHeight;
