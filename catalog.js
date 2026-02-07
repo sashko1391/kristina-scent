@@ -1,6 +1,6 @@
 // ==========================================
 // Dniprowska Parfumerka - Catalog
-// Version 2.3 - Clean & Working
+// Version 2.4 - Fixed encoding & checkout
 // ==========================================
 
 // CONFIG
@@ -21,13 +21,13 @@ document.addEventListener('DOMContentLoaded', function() {
     loadProducts();
     initializeEventListeners();
     
-    const urlParams = new URLSearchParams(window.location.search);
-    const categoryParam = urlParams.get('category');
+    var urlParams = new URLSearchParams(window.location.search);
+    var categoryParam = urlParams.get('category');
     if (categoryParam) {
-        setTimeout(() => {
-            const filterBtn = document.querySelector('[data-category="' + categoryParam + '"]');
+        setTimeout(function() {
+            var filterBtn = document.querySelector('[data-category="' + categoryParam + '"]');
             if (filterBtn) {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
                 filterBtn.classList.add('active');
                 filterProducts(categoryParam);
             }
@@ -39,8 +39,8 @@ document.addEventListener('DOMContentLoaded', function() {
 // LOAD PRODUCTS
 // ==========================================
 async function loadProducts() {
-    const loading = document.getElementById('loading');
-    const error = document.getElementById('error');
+    var loading = document.getElementById('loading');
+    var error = document.getElementById('error');
     
     try {
         loading.style.display = 'block';
@@ -49,11 +49,11 @@ async function loadProducts() {
         console.log('Loading products...');
         
         // Load AI descriptions first
-        let aiDescriptions = {};
+        var aiDescriptions = {};
         try {
-            const descResponse = await fetch('ai-descriptions.json');
+            var descResponse = await fetch('ai-descriptions.json');
             if (descResponse.ok) {
-                const descData = await descResponse.json();
+                var descData = await descResponse.json();
                 aiDescriptions = descData.descriptions;
                 console.log('AI descriptions loaded:', Object.keys(aiDescriptions).length);
             }
@@ -61,18 +61,18 @@ async function loadProducts() {
             console.warn('Could not load AI descriptions:', descError.message);
         }
         
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        var controller = new AbortController();
+        var timeoutId = setTimeout(function() { controller.abort(); }, 5000);
         
         try {
-            const response = await fetch(GOOGLE_SHEET_URL, {
+            var response = await fetch(GOOGLE_SHEET_URL, {
                 signal: controller.signal
             });
             clearTimeout(timeoutId);
             
             if (!response.ok) throw new Error('Sheets not OK');
             
-            const csvText = await response.text();
+            var csvText = await response.text();
             console.log('CSV loaded, length:', csvText.length);
             
             allProducts = parseCSV(csvText);
@@ -90,10 +90,10 @@ async function loadProducts() {
         } catch (sheetsError) {
             console.warn('Google Sheets failed, using fallback:', sheetsError.message);
             
-            const fallbackResponse = await fetch(FALLBACK_JSON_URL);
+            var fallbackResponse = await fetch(FALLBACK_JSON_URL);
             if (!fallbackResponse.ok) throw new Error('Both sources failed');
             
-            const fallbackData = await fallbackResponse.json();
+            var fallbackData = await fallbackResponse.json();
             allProducts = fallbackData.products;
             
             // Merge AI descriptions with fallback products too
@@ -106,7 +106,7 @@ async function loadProducts() {
             
             console.log('Products from fallback:', allProducts.length);
             
-            showToast('⚠️ Завантажено з резервної копії');
+            showToast('\u26A0\uFE0F Завантажено з резервної копії');
         }
         
         if (allProducts.length === 0) {
@@ -127,24 +127,23 @@ async function loadProducts() {
 // PARSE CSV
 // ==========================================
 function parseCSV(csv) {
-    const lines = csv.split('\n');
-    const products = [];
+    var lines = csv.split('\n');
+    var products = [];
     
-    for (let i = 1; i < lines.length; i++) {
-        const line = lines[i].trim();
+    for (var i = 1; i < lines.length; i++) {
+        var line = lines[i].trim();
         if (!line) continue;
         
-        const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+        var values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
         if (!values || values.length < 5) continue;
         
-        const id = values[0] ? values[0].replace(/"/g, '').trim() : '';
-        const name = values[1] ? values[1].replace(/"/g, '').trim() : '';
-        const category = values[2] ? values[2].replace(/"/g, '').trim().toLowerCase() : '';
-        const price = parseInt(values[3] ? values[3].replace(/"/g, '').trim() : '0') || 0;
-        const imageUrl = values[4] ? values[4].replace(/"/g, '').trim() : '';
-        const directLink = values[5] ? values[5].replace(/"/g, '').trim() : '';
-        const badge = values[6] ? values[6].replace(/"/g, '').trim() : '';
-        // Column H (aiDescription) is now loaded from separate JSON file
+        var id = values[0] ? values[0].replace(/"/g, '').trim() : '';
+        var name = values[1] ? values[1].replace(/"/g, '').trim() : '';
+        var category = values[2] ? values[2].replace(/"/g, '').trim().toLowerCase() : '';
+        var price = parseInt(values[3] ? values[3].replace(/"/g, '').trim() : '0') || 0;
+        var imageUrl = values[4] ? values[4].replace(/"/g, '').trim() : '';
+        var directLink = values[5] ? values[5].replace(/"/g, '').trim() : '';
+        var badge = values[6] ? values[6].replace(/"/g, '').trim() : '';
         
         if (!id || !name || !price) continue;
         
@@ -155,7 +154,7 @@ function parseCSV(csv) {
             price: price,
             imageUrl: directLink || imageUrl,
             badge: badge,
-            aiDescription: null // Will be merged from ai-descriptions.json
+            aiDescription: null
         });
     }
     
@@ -166,54 +165,51 @@ function parseCSV(csv) {
 // DISPLAY PRODUCTS
 // ==========================================
 function displayProducts(products) {
-    const catalogGrid = document.getElementById('catalogGrid');
+    var catalogGrid = document.getElementById('catalogGrid');
     
     if (products.length === 0) {
         catalogGrid.innerHTML = '<p class="error-state">Товари не знайдено</p>';
         return;
     }
     
-    const html = [];
+    var html = [];
     
-    for (let i = 0; i < products.length; i++) {
-        const p = products[i];
+    for (var i = 0; i < products.length; i++) {
+        var p = products[i];
         
-        // Simple hover content - always works
-        let hoverHTML = '<div class="hover-simple-content">';
+        var hoverHTML = '<div class="hover-simple-content">';
         hoverHTML += '<h3 style="margin:0 0 10px 0;color:#2C2C2C;font-size:16px;font-weight:600;">' + p.name + '</h3>';
         
-        // Try to show AI description if available
         if (p.aiDescription && p.aiDescription.description) {
             hoverHTML += '<p style="font-size:14px;color:#666;line-height:1.5;margin-bottom:12px;">' + p.aiDescription.description + '</p>';
             
             if (p.aiDescription.top && p.aiDescription.top.length > 0) {
                 hoverHTML += '<div style="font-size:13px;margin-bottom:6px;">';
-                hoverHTML += '<strong style="color:#D4AF37;">⬆️ Верх:</strong> ';
+                hoverHTML += '<strong style="color:#D4AF37;">\u2B06\uFE0F Верх:</strong> ';
                 hoverHTML += '<span style="color:#666;">' + p.aiDescription.top.join(', ') + '</span>';
                 hoverHTML += '</div>';
             }
             
             if (p.aiDescription.heart && p.aiDescription.heart.length > 0) {
                 hoverHTML += '<div style="font-size:13px;margin-bottom:6px;">';
-                hoverHTML += '<strong style="color:#D4AF37;">💖 Серце:</strong> ';
+                hoverHTML += '<strong style="color:#D4AF37;">\uD83D\uDC96 Серце:</strong> ';
                 hoverHTML += '<span style="color:#666;">' + p.aiDescription.heart.join(', ') + '</span>';
                 hoverHTML += '</div>';
             }
             
             if (p.aiDescription.base && p.aiDescription.base.length > 0) {
                 hoverHTML += '<div style="font-size:13px;margin-bottom:12px;">';
-                hoverHTML += '<strong style="color:#D4AF37;">⬇️ База:</strong> ';
+                hoverHTML += '<strong style="color:#D4AF37;">\u2B07\uFE0F База:</strong> ';
                 hoverHTML += '<span style="color:#666;">' + p.aiDescription.base.join(', ') + '</span>';
                 hoverHTML += '</div>';
             }
         }
         
-        // Price and button always visible
         hoverHTML += '<p style="font-size:18px;font-weight:bold;color:#2C2C2C;margin:12px 0 8px 0;"><strong>' + p.price + ' грн</strong></p>';
-        hoverHTML += '<button class="add-to-cart-btn" onclick="addToCart(\'' + p.id + '\')">🛒 Додати в кошик</button>';
+        hoverHTML += '<button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart(\'' + p.id + '\')">\uD83D\uDED2 Додати в кошик</button>';
         hoverHTML += '</div>';
         
-        let card = '<div class="product-card-catalog" data-id="' + p.id + '">';
+        var card = '<div class="product-card-catalog" data-id="' + p.id + '">';
         
         if (p.badge) {
             card += '<div class="product-badge">' + p.badge + '</div>';
@@ -235,7 +231,7 @@ function displayProducts(products) {
     
     catalogGrid.innerHTML = html.join('');
     
-    console.log('✅ Displayed', products.length, 'products with hover');
+    console.log('\u2705 Displayed', products.length, 'products with hover');
 }
 
 // ==========================================
@@ -243,14 +239,14 @@ function displayProducts(products) {
 // ==========================================
 function searchProducts(query) {
     if (!query) {
-        const activeFilter = document.querySelector('.filter-btn.active');
-        const category = activeFilter ? activeFilter.dataset.category : 'all';
+        var activeFilter = document.querySelector('.filter-btn.active');
+        var category = activeFilter ? activeFilter.dataset.category : 'all';
         filterProducts(category);
         return;
     }
     
-    const lowerQuery = query.toLowerCase();
-    const filtered = allProducts.filter(function(p) {
+    var lowerQuery = query.toLowerCase();
+    var filtered = allProducts.filter(function(p) {
         return p.name.toLowerCase().indexOf(lowerQuery) !== -1;
     });
     
@@ -264,7 +260,7 @@ function filterProducts(category) {
     if (category === 'all') {
         displayProducts(allProducts);
     } else {
-        const filtered = allProducts.filter(function(p) {
+        var filtered = allProducts.filter(function(p) {
             return p.category === category;
         });
         displayProducts(filtered);
@@ -275,12 +271,12 @@ function filterProducts(category) {
 // EVENT LISTENERS
 // ==========================================
 function initializeEventListeners() {
-    const searchInput = document.getElementById('searchInput');
-    const searchClear = document.getElementById('searchClear');
+    var searchInput = document.getElementById('searchInput');
+    var searchClear = document.getElementById('searchClear');
     
     if (searchInput) {
         searchInput.addEventListener('input', function(e) {
-            const query = e.target.value.trim();
+            var query = e.target.value.trim();
             if (searchClear) {
                 searchClear.style.display = query ? 'block' : 'none';
             }
@@ -296,7 +292,7 @@ function initializeEventListeners() {
         });
     }
     
-    const filterButtons = document.querySelectorAll('.filter-btn');
+    var filterButtons = document.querySelectorAll('.filter-btn');
     filterButtons.forEach(function(btn) {
         btn.addEventListener('click', function() {
             filterButtons.forEach(function(b) {
@@ -307,9 +303,9 @@ function initializeEventListeners() {
         });
     });
     
-    const cartBtn = document.querySelector('.cart-button');
-    const cartModal = document.getElementById('cartModal');
-    const closeCart = document.getElementById('closeCart');
+    var cartBtn = document.querySelector('.cart-button');
+    var cartModal = document.getElementById('cartModal');
+    var closeCart = document.getElementById('closeCart');
     
     if (cartBtn && cartModal) {
         cartBtn.addEventListener('click', function() {
@@ -337,22 +333,30 @@ function initializeEventListeners() {
 // CART
 // ==========================================
 function loadCart() {
-    const saved = localStorage.getItem('cart');
-    cart = saved ? JSON.parse(saved) : [];
+    try {
+        var saved = localStorage.getItem('cart');
+        cart = saved ? JSON.parse(saved) : [];
+    } catch (e) {
+        cart = [];
+    }
 }
 
 function saveCart() {
-    localStorage.setItem('cart', JSON.stringify(cart));
+    try {
+        localStorage.setItem('cart', JSON.stringify(cart));
+    } catch (e) {
+        console.warn('Could not save cart');
+    }
 }
 
 function addToCart(productId) {
-    const product = allProducts.find(function(p) {
+    var product = allProducts.find(function(p) {
         return p.id === productId;
     });
     
     if (!product) return;
     
-    const existingItem = cart.find(function(item) {
+    var existingItem = cart.find(function(item) {
         return item.id === productId;
     });
     
@@ -370,7 +374,7 @@ function addToCart(productId) {
     
     saveCart();
     updateCartUI();
-    showToast('✅ ' + product.name + ' додано в кошик');
+    showToast('\u2705 ' + product.name + ' додано в кошик');
 }
 
 function removeFromCart(productId) {
@@ -383,7 +387,7 @@ function removeFromCart(productId) {
 }
 
 function updateQuantity(productId, change) {
-    const item = cart.find(function(i) {
+    var item = cart.find(function(i) {
         return i.id === productId;
     });
     
@@ -393,14 +397,15 @@ function updateQuantity(productId, change) {
             removeFromCart(productId);
         } else {
             saveCart();
+            updateCartUI();
             updateCartModal();
         }
     }
 }
 
 function updateCartUI() {
-    const cartCount = document.querySelector('.cart-count');
-    const totalItems = cart.reduce(function(sum, item) {
+    var cartCount = document.querySelector('.cart-count');
+    var totalItems = cart.reduce(function(sum, item) {
         return sum + item.quantity;
     }, 0);
     
@@ -411,15 +416,18 @@ function updateCartUI() {
 }
 
 function updateCartModal() {
-    const cartBody = document.getElementById('cartItems');
-    const cartTotal = document.getElementById('cartTotal');
-    const checkoutBtn = document.getElementById('checkoutBtn');
+    var cartBody = document.getElementById('cartItems');
+    var cartTotal = document.getElementById('cartTotal');
+    var checkoutBtn = document.getElementById('checkoutBtn');
+    var cartFooter = document.querySelector('.cart-footer');
     
-    // If modal elements don't exist, skip update
     if (!cartBody || !cartTotal) {
         console.warn('Cart modal elements not found');
         return;
     }
+    
+    // Show footer again (in case it was hidden by checkout)
+    if (cartFooter) cartFooter.style.display = 'block';
     
     if (cart.length === 0) {
         cartBody.innerHTML = '<p class="empty-cart">Кошик порожній</p>';
@@ -430,21 +438,21 @@ function updateCartModal() {
     
     if (checkoutBtn) checkoutBtn.style.display = 'block';
     
-    const total = cart.reduce(function(sum, item) {
+    var total = cart.reduce(function(sum, item) {
         return sum + (item.price * item.quantity);
     }, 0);
     
-    const itemsHTML = [];
-    for (let i = 0; i < cart.length; i++) {
-        const item = cart[i];
+    var itemsHTML = [];
+    for (var i = 0; i < cart.length; i++) {
+        var item = cart[i];
         
-        let html = '<div class="cart-item">';
-        html += '<img src="' + item.imageUrl + '" alt="' + item.name + '" class="cart-item-image" onerror="this.src=\'images/products/placeholder.jpg\'">';
+        var html = '<div class="cart-item">';
+        html += '<img src="' + item.imageUrl + '" alt="' + item.name + '" class="cart-item-image" onerror="this.style.display=\'none\'">';
         html += '<div class="cart-item-details">';
         html += '<div class="cart-item-name">' + item.name + '</div>';
         html += '<div class="cart-item-price">' + item.price + ' грн</div>';
         html += '<div class="cart-item-controls">';
-        html += '<button class="qty-btn" onclick="updateQuantity(\'' + item.id + '\', -1)">−</button>';
+        html += '<button class="qty-btn" onclick="updateQuantity(\'' + item.id + '\', -1)">\u2212</button>';
         html += '<span class="cart-item-qty">' + item.quantity + '</span>';
         html += '<button class="qty-btn" onclick="updateQuantity(\'' + item.id + '\', 1)">+</button>';
         html += '<button class="remove-item-btn" onclick="removeFromCart(\'' + item.id + '\')">Видалити</button>';
@@ -457,53 +465,55 @@ function updateCartModal() {
     cartTotal.textContent = total + ' грн';
 }
 
+// ==========================================
+// CHECKOUT - Fixed: no form submission, direct JS handling
+// ==========================================
 function checkout() {
     if (cart.length === 0) {
-        showToast('⚠️ Кошик порожній');
+        showToast('\u26A0\uFE0F Кошик порожній');
         return;
     }
     
-    // Show order form in modal
-    const cartModal = document.getElementById('cartModal');
-    const cartItems = document.getElementById('cartItems');
-    const cartFooter = document.querySelector('.cart-footer');
+    var cartModal = document.getElementById('cartModal');
+    var cartItems = document.getElementById('cartItems');
+    var cartFooter = document.querySelector('.cart-footer');
     
     if (!cartModal || !cartItems) return;
     
     // Calculate total
-    const total = cart.reduce(function(sum, item) {
+    var total = cart.reduce(function(sum, item) {
         return sum + (item.price * item.quantity);
     }, 0);
     
     // Build order summary
-    let orderList = '';
-    for (let i = 0; i < cart.length; i++) {
-        const item = cart[i];
+    var orderList = '';
+    for (var i = 0; i < cart.length; i++) {
+        var item = cart[i];
         orderList += '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #FFF0F3;">';
         orderList += '<span>' + item.name + ' x' + item.quantity + '</span>';
         orderList += '<span style="color:#D4AF37;font-weight:600;">' + (item.price * item.quantity) + ' грн</span>';
         orderList += '</div>';
     }
     
-    // Show order form
+    // Show order form — NO <form> tag, using div + onclick instead to avoid 404
     cartItems.innerHTML = '<div style="padding:10px;">' +
         '<h3 style="margin:0 0 15px 0;">Оформлення замовлення</h3>' +
-        '<form id="orderFormQuick" style="display:flex;flex-direction:column;gap:12px;">' +
+        '<div id="orderFormFields" style="display:flex;flex-direction:column;gap:12px;">' +
         '<div>' +
         '<label style="display:block;margin-bottom:5px;font-weight:600;color:#2C2C2C;">Ім\'я *</label>' +
-        '<input type="text" id="orderName" required placeholder="Ваше ім\'я" style="width:100%;padding:10px;border:2px solid #FFF0F3;border-radius:8px;font-size:14px;">' +
+        '<input type="text" id="orderName" placeholder="Ваше ім\'я" style="width:100%;padding:10px;border:2px solid #FFF0F3;border-radius:8px;font-size:14px;box-sizing:border-box;">' +
         '</div>' +
         '<div>' +
         '<label style="display:block;margin-bottom:5px;font-weight:600;color:#2C2C2C;">Телефон *</label>' +
-        '<input type="tel" id="orderPhone" required placeholder="099-123-45-67" style="width:100%;padding:10px;border:2px solid #FFF0F3;border-radius:8px;font-size:14px;">' +
+        '<input type="tel" id="orderPhone" placeholder="099-123-45-67" style="width:100%;padding:10px;border:2px solid #FFF0F3;border-radius:8px;font-size:14px;box-sizing:border-box;">' +
         '</div>' +
         '<div>' +
         '<label style="display:block;margin-bottom:5px;font-weight:600;color:#2C2C2C;">Місто/Адреса *</label>' +
-        '<input type="text" id="orderAddress" required placeholder="Місто, відділення Нової Пошти" style="width:100%;padding:10px;border:2px solid #FFF0F3;border-radius:8px;font-size:14px;">' +
+        '<input type="text" id="orderAddress" placeholder="Місто, відділення Нової Пошти" style="width:100%;padding:10px;border:2px solid #FFF0F3;border-radius:8px;font-size:14px;box-sizing:border-box;">' +
         '</div>' +
         '<div>' +
         '<label style="display:block;margin-bottom:5px;font-weight:600;color:#2C2C2C;">Коментар</label>' +
-        '<textarea id="orderComment" rows="2" placeholder="Додаткова інформація (опціонально)" style="width:100%;padding:10px;border:2px solid #FFF0F3;border-radius:8px;font-size:14px;resize:vertical;"></textarea>' +
+        '<textarea id="orderComment" rows="2" placeholder="Додаткова інформація (опціонально)" style="width:100%;padding:10px;border:2px solid #FFF0F3;border-radius:8px;font-size:14px;resize:vertical;box-sizing:border-box;"></textarea>' +
         '</div>' +
         '<div style="background:#FFF0F3;padding:15px;border-radius:8px;margin-top:10px;">' +
         '<h4 style="margin:0 0 10px 0;color:#2C2C2C;">Ваше замовлення:</h4>' +
@@ -513,60 +523,73 @@ function checkout() {
         '<span style="color:#D4AF37;">' + total + ' грн</span>' +
         '</div>' +
         '</div>' +
-        '<button type="submit" style="width:100%;background:#D4AF37;color:white;border:none;padding:15px;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;margin-top:10px;">📦 Відправити замовлення</button>' +
-        '<button type="button" onclick="backToCart()" style="width:100%;background:#f5f5f5;color:#666;border:none;padding:12px;border-radius:8px;font-size:14px;cursor:pointer;">← Назад до кошика</button>' +
-        '</form>' +
+        '<button type="button" id="submitOrderBtn" onclick="submitOrderDirect()" style="width:100%;background:#D4AF37;color:white;border:none;padding:15px;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;margin-top:10px;">\uD83D\uDCE6 Відправити замовлення</button>' +
+        '<button type="button" onclick="backToCart()" style="width:100%;background:#f5f5f5;color:#666;border:none;padding:12px;border-radius:8px;font-size:14px;cursor:pointer;">\u2190 Назад до кошика</button>' +
+        '</div>' +
         '</div>';
     
     // Hide footer
     if (cartFooter) cartFooter.style.display = 'none';
-    
-    // Add form submit handler
-    setTimeout(function() {
-        const form = document.getElementById('orderFormQuick');
-        if (form) {
-            form.addEventListener('submit', submitOrderDirect);
-        }
-    }, 100);
 }
 
 function backToCart() {
     updateCartModal();
-    const cartFooter = document.querySelector('.cart-footer');
-    if (cartFooter) cartFooter.style.display = 'block';
 }
 
-async function submitOrderDirect(e) {
-    e.preventDefault();
+async function submitOrderDirect() {
+    var name = document.getElementById('orderName').value.trim();
+    var phone = document.getElementById('orderPhone').value.trim();
+    var address = document.getElementById('orderAddress').value.trim();
+    var comment = document.getElementById('orderComment').value.trim();
     
-    const name = document.getElementById('orderName').value;
-    const phone = document.getElementById('orderPhone').value;
-    const address = document.getElementById('orderAddress').value;
-    const comment = document.getElementById('orderComment').value;
+    // Validate required fields
+    if (!name) {
+        showToast('\u26A0\uFE0F Введіть ваше ім\'я');
+        document.getElementById('orderName').focus();
+        return;
+    }
+    if (!phone) {
+        showToast('\u26A0\uFE0F Введіть номер телефону');
+        document.getElementById('orderPhone').focus();
+        return;
+    }
+    if (!address) {
+        showToast('\u26A0\uFE0F Введіть адресу доставки');
+        document.getElementById('orderAddress').focus();
+        return;
+    }
+    
+    // Disable submit button
+    var submitBtn = document.getElementById('submitOrderBtn');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = '\u23F3 Відправляємо...';
+    }
     
     // Build order message
-    let orderText = '🛒 Нове замовлення!\n\n';
-    orderText += '👤 Ім\'я: ' + name + '\n';
-    orderText += '📱 Телефон: ' + phone + '\n';
-    orderText += '📍 Адреса: ' + address + '\n';
+    var orderText = '\uD83D\uDED2 Нове замовлення!\n\n';
+    orderText += '\uD83D\uDC64 Ім\'я: ' + name + '\n';
+    orderText += '\uD83D\uDCF1 Телефон: ' + phone + '\n';
+    orderText += '\uD83D\uDCCD Адреса: ' + address + '\n';
     if (comment) {
-        orderText += '💬 Коментар: ' + comment + '\n';
+        orderText += '\uD83D\uDCAC Коментар: ' + comment + '\n';
     }
-    orderText += '\n📦 Товари:\n';
+    orderText += '\n\uD83D\uDCE6 Товари:\n';
     
-    let total = 0;
-    for (let i = 0; i < cart.length; i++) {
-        const item = cart[i];
-        const itemTotal = item.price * item.quantity;
+    var total = 0;
+    for (var i = 0; i < cart.length; i++) {
+        var item = cart[i];
+        var itemTotal = item.price * item.quantity;
         total += itemTotal;
-        orderText += '• ' + item.name + ' x' + item.quantity + ' = ' + itemTotal + ' грн\n';
+        orderText += '\u2022 ' + item.name + ' x' + item.quantity + ' = ' + itemTotal + ' грн\n';
     }
     
-    orderText += '\n💰 Всього: ' + total + ' грн';
+    orderText += '\n\uD83D\uDCB0 Всього: ' + total + ' грн';
+    
+    var workerSuccess = false;
     
     try {
-        // Send to Telegram via Worker
-        const response = await fetch(WORKER_URL, {
+        var response = await fetch(WORKER_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -578,25 +601,60 @@ async function submitOrderDirect(e) {
         });
         
         if (response.ok) {
-            // Success!
-            cart = [];
-            saveCart();
-            updateCartUI();
-            
-            // Close modal
-            const cartModal = document.getElementById('cartModal');
-            if (cartModal) cartModal.style.display = 'none';
-            
-            // Show success message
-            showToast('✅ Замовлення відправлено! Ми зв\'яжемось з вами найближчим часом.');
-            
-        } else {
-            throw new Error('Server error');
+            var data = await response.json().catch(function() { return {}; });
+            // Check if worker actually succeeded (some workers return 200 with error in body)
+            if (!data.error) {
+                workerSuccess = true;
+            }
         }
-        
     } catch (error) {
-        console.error('Order error:', error);
-        showToast('❌ Помилка відправки. Спробуйте ще раз або зателефонуйте нам.');
+        console.warn('Worker order failed:', error);
+    }
+    
+    if (workerSuccess) {
+        // Worker sent to Telegram successfully
+        cart = [];
+        saveCart();
+        updateCartUI();
+        
+        var cartModal = document.getElementById('cartModal');
+        if (cartModal) cartModal.style.display = 'none';
+        
+        showToast('\u2705 Замовлення відправлено! Ми зв\'яжемося з вами найближчим часом.');
+    } else {
+        // Fallback: open Telegram directly with pre-filled message
+        console.log('Worker failed, using Telegram deep link fallback');
+        
+        var telegramText = '\uD83D\uDED2 Замовлення з сайту\n\n';
+        telegramText += 'Ім\'я: ' + name + '\n';
+        telegramText += 'Телефон: ' + phone + '\n';
+        telegramText += 'Адреса: ' + address + '\n';
+        if (comment) {
+            telegramText += 'Коментар: ' + comment + '\n';
+        }
+        telegramText += '\nТовари:\n';
+        
+        for (var j = 0; j < cart.length; j++) {
+            var cartItem = cart[j];
+            telegramText += '• ' + cartItem.name + ' x' + cartItem.quantity + ' = ' + (cartItem.price * cartItem.quantity) + ' грн\n';
+        }
+        telegramText += '\nВсього: ' + total + ' грн';
+        
+        var encodedText = encodeURIComponent(telegramText);
+        var telegramUrl = 'https://t.me/dniprovska_parfumerka?text=' + encodedText;
+        
+        // Clear cart
+        cart = [];
+        saveCart();
+        updateCartUI();
+        
+        var cartModal = document.getElementById('cartModal');
+        if (cartModal) cartModal.style.display = 'none';
+        
+        // Open Telegram
+        window.open(telegramUrl, '_blank');
+        
+        showToast('\u2705 Замовлення готове! Відправте повідомлення в Telegram.');
     }
 }
 
@@ -604,12 +662,12 @@ async function submitOrderDirect(e) {
 // TOAST
 // ==========================================
 function showToast(message) {
-    let toast = document.getElementById('toast');
+    var toast = document.getElementById('toast');
     
     if (!toast) {
         toast = document.createElement('div');
         toast.id = 'toast';
-        toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#2C2C2C;color:white;padding:12px 24px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:10000;opacity:0;transition:opacity 0.3s;';
+        toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#2C2C2C;color:white;padding:12px 24px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:10000;opacity:0;transition:opacity 0.3s;max-width:90%;text-align:center;';
         document.body.appendChild(toast);
     }
     
@@ -621,4 +679,4 @@ function showToast(message) {
     }, 3000);
 }
 
-console.log('✅ Catalog.js v2.3 loaded');
+console.log('\u2705 Catalog.js v2.4 loaded');
