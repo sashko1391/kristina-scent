@@ -311,24 +311,26 @@ function initializeEventListeners() {
     const cartModal = document.getElementById('cartModal');
     const closeCart = document.getElementById('closeCart');
     
-    if (cartBtn) {
+    if (cartBtn && cartModal) {
         cartBtn.addEventListener('click', function() {
             updateCartModal();
             cartModal.style.display = 'flex';
         });
     }
     
-    if (closeCart) {
+    if (closeCart && cartModal) {
         closeCart.addEventListener('click', function() {
             cartModal.style.display = 'none';
         });
     }
     
-    window.addEventListener('click', function(e) {
-        if (e.target === cartModal) {
-            cartModal.style.display = 'none';
-        }
-    });
+    if (cartModal) {
+        window.addEventListener('click', function(e) {
+            if (e.target === cartModal) {
+                cartModal.style.display = 'none';
+            }
+        });
+    }
 }
 
 // ==========================================
@@ -412,6 +414,12 @@ function updateCartModal() {
     const cartBody = document.getElementById('cartItems');
     const cartTotal = document.getElementById('cartTotal');
     const checkoutBtn = document.getElementById('checkoutBtn');
+    
+    // If modal elements don't exist, skip update
+    if (!cartBody || !cartTotal) {
+        console.warn('Cart modal elements not found');
+        return;
+    }
     
     if (cart.length === 0) {
         cartBody.innerHTML = '<p class="empty-cart">Кошик порожній</p>';
