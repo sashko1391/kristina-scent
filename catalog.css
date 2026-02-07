@@ -261,10 +261,7 @@
 .hover-simple-content {
     width: 100%;
     text-align: left !important;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    min-height: 100%;
+    display: block;
 }
 
 .hover-simple-content h3,
@@ -273,9 +270,10 @@
     text-align: left !important;
 }
 
-/* Button at bottom */
+/* Button styling */
 .hover-simple-content .add-to-cart-btn {
-    margin-top: auto !important;
+    width: 100%;
+    margin-top: 8px;
 }
 
 .product-description {

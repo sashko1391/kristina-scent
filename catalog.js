@@ -208,8 +208,8 @@ function displayProducts(products) {
             }
         }
         
-        hoverHTML += '<div style="flex:1;"></div>'; // Spacer
-        hoverHTML += '<p style="font-size:18px;font-weight:bold;color:#2C2C2C;margin:8px 0;"><strong>' + p.price + ' грн</strong></p>';
+        // Price and button always visible
+        hoverHTML += '<p style="font-size:18px;font-weight:bold;color:#2C2C2C;margin:12px 0 8px 0;"><strong>' + p.price + ' грн</strong></p>';
         hoverHTML += '<button class="add-to-cart-btn" onclick="addToCart(\'' + p.id + '\')">🛒 Додати в кошик</button>';
         hoverHTML += '</div>';
         
