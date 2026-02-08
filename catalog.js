@@ -48,19 +48,6 @@ async function loadProducts() {
         
         console.log('Loading products...');
         
-        // Load AI descriptions first
-        var aiDescriptions = {};
-        try {
-            var descResponse = await fetch('ai-descriptions.json');
-            if (descResponse.ok) {
-                var descData = await descResponse.json();
-                aiDescriptions = descData.descriptions;
-                console.log('AI descriptions loaded:', Object.keys(aiDescriptions).length);
-            }
-        } catch (descError) {
-            console.warn('Could not load AI descriptions:', descError.message);
-        }
-        
         var controller = new AbortController();
         var timeoutId = setTimeout(function() { controller.abort(); }, 5000);
         
@@ -76,15 +63,6 @@ async function loadProducts() {
             console.log('CSV loaded, length:', csvText.length);
             
             allProducts = parseCSV(csvText);
-            
-            // Merge AI descriptions with products
-            allProducts = allProducts.map(function(p) {
-                if (aiDescriptions[p.id]) {
-                    p.aiDescription = aiDescriptions[p.id];
-                }
-                return p;
-            });
-            
             console.log('Products from Sheets:', allProducts.length);
             
         } catch (sheetsError) {
@@ -95,14 +73,6 @@ async function loadProducts() {
             
             var fallbackData = await fallbackResponse.json();
             allProducts = fallbackData.products;
-            
-            // Merge AI descriptions with fallback products too
-            allProducts = allProducts.map(function(p) {
-                if (aiDescriptions[p.id]) {
-                    p.aiDescription = aiDescriptions[p.id];
-                }
-                return p;
-            });
             
             console.log('Products from fallback:', allProducts.length);
             
@@ -124,7 +94,7 @@ async function loadProducts() {
 }
 
 // ==========================================
-// PARSE CSV
+// PARSE CSV - handles empty cells & quoted values
 // ==========================================
 function parseCSV(csv) {
     var lines = csv.split('\n');
@@ -134,20 +104,26 @@ function parseCSV(csv) {
         var line = lines[i].trim();
         if (!line) continue;
         
-        var values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-        if (!values || values.length < 5) continue;
+        var values = splitCSVLine(line);
+        if (values.length < 5) continue;
         
-        var id = values[0] ? values[0].replace(/"/g, '').trim() : '';
-        var name = values[1] ? values[1].replace(/"/g, '').trim() : '';
-        var category = values[2] ? values[2].replace(/"/g, '').trim().toLowerCase() : '';
-        var price = parseInt(values[3] ? values[3].replace(/"/g, '').trim() : '0') || 0;
-        var imageUrl = values[4] ? values[4].replace(/"/g, '').trim() : '';
-        var directLink = values[5] ? values[5].replace(/"/g, '').trim() : '';
-        var badge = values[6] ? values[6].replace(/"/g, '').trim() : '';
+        var id = (values[0] || '').trim();
+        var name = (values[1] || '').trim();
+        var category = (values[2] || '').trim().toLowerCase();
+        var price = parseInt((values[3] || '0').trim()) || 0;
+        var imageUrl = (values[4] || '').trim();
+        var directLink = (values[5] || '').trim();
+        var badge = (values[6] || '').trim();
+        
+        // AI Description columns (H=7, I=8, J=9, K=10)
+        var aiDesc = (values[7] || '').trim();
+        var aiTop = (values[8] || '').trim();
+        var aiHeart = (values[9] || '').trim();
+        var aiBase = (values[10] || '').trim();
         
         if (!id || !name || !price) continue;
         
-        products.push({
+        var product = {
             id: id,
             name: name,
             category: category,
@@ -155,10 +131,48 @@ function parseCSV(csv) {
             imageUrl: directLink || imageUrl,
             badge: badge,
             aiDescription: null
-        });
+        };
+        
+        // Build aiDescription if any AI data exists
+        if (aiDesc || aiTop || aiHeart || aiBase) {
+            product.aiDescription = {
+                description: aiDesc,
+                top: aiTop ? aiTop.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : [],
+                heart: aiHeart ? aiHeart.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : [],
+                base: aiBase ? aiBase.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : []
+            };
+        }
+        
+        products.push(product);
     }
     
     return products;
+}
+
+// Proper CSV line splitter: handles empty cells (,,) and quoted values ("a, b")
+function splitCSVLine(line) {
+    var result = [];
+    var current = '';
+    var inQuotes = false;
+    
+    for (var j = 0; j < line.length; j++) {
+        var ch = line[j];
+        if (ch === '"') {
+            if (inQuotes && line[j + 1] === '"') {
+                current += '"';
+                j++;
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (ch === ',' && !inQuotes) {
+            result.push(current);
+            current = '';
+        } else {
+            current += ch;
+        }
+    }
+    result.push(current);
+    return result;
 }
 
 // ==========================================

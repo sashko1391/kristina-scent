@@ -79,14 +79,18 @@ function parseCSV(csv) {
         var line = lines[i].trim();
         if (!line) continue;
         
-        var values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-        if (!values || values.length < 5) continue;
+        var values = splitCSVLine(line);
+        if (values.length < 5) continue;
         
-        var id = values[0] ? values[0].replace(/"/g, '').trim() : '';
-        var name = values[1] ? values[1].replace(/"/g, '').trim() : '';
-        var category = values[2] ? values[2].replace(/"/g, '').trim() : '';
-        var price = parseInt(values[3] ? values[3].replace(/"/g, '').trim() : '0') || 0;
-        var badge = values[6] ? values[6].replace(/"/g, '').trim() : '';
+        var id = (values[0] || '').trim();
+        var name = (values[1] || '').trim();
+        var category = (values[2] || '').trim();
+        var price = parseInt((values[3] || '0').trim()) || 0;
+        var badge = (values[6] || '').trim();
+        var aiDesc = (values[7] || '').trim();
+        var aiTop = (values[8] || '').trim();
+        var aiHeart = (values[9] || '').trim();
+        var aiBase = (values[10] || '').trim();
         
         if (id && name && price) {
             products.push({
@@ -94,12 +98,34 @@ function parseCSV(csv) {
                 name: name,
                 category: category,
                 price: price,
-                badge: badge
+                badge: badge,
+                description: aiDesc,
+                topNotes: aiTop,
+                heartNotes: aiHeart,
+                baseNotes: aiBase
             });
         }
     }
     
     return products;
+}
+
+function splitCSVLine(line) {
+    var result = [];
+    var current = '';
+    var inQuotes = false;
+    for (var j = 0; j < line.length; j++) {
+        var ch = line[j];
+        if (ch === '"') {
+            if (inQuotes && line[j + 1] === '"') { current += '"'; j++; }
+            else { inQuotes = !inQuotes; }
+        } else if (ch === ',' && !inQuotes) {
+            result.push(current); current = '';
+        } else { current += ch; }
+    }
+    result.push(current);
+    return result;
+}
 }
 
 // ========================================
@@ -219,7 +245,13 @@ async function callClaudeAPI(userMessage) {
 
 function buildSystemPrompt() {
     var productsInfo = productsData.map(function(p) {
-        return '- ' + p.name + ' (' + getCategoryName(p.category) + ', ' + p.price + ' грн)' + (p.badge ? ' [' + p.badge + ']' : '');
+        var line = '- ' + p.name + ' (' + getCategoryName(p.category) + ', ' + p.price + ' грн)';
+        if (p.badge) line += ' [' + p.badge + ']';
+        if (p.description) line += '\n  Опис: ' + p.description;
+        if (p.topNotes) line += '\n  Верхні ноти: ' + p.topNotes;
+        if (p.heartNotes) line += '\n  Серцеві ноти: ' + p.heartNotes;
+        if (p.baseNotes) line += '\n  Базові ноти: ' + p.baseNotes;
+        return line;
     }).join('\n');
     
     return 'Ти — віртуальний консультант парфумерного магазину Dniprowska Parfumerka.\n\n' +
