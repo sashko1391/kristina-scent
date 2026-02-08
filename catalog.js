@@ -1,16 +1,15 @@
 // ==========================================
 // Dniprowska Parfumerka - Catalog
-// Version 2.4 - Fixed encoding & checkout
+// Version 2.5 - Worker Proxy for Google Sheets
 // ==========================================
 
 // CONFIG
-const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1T_JIYKlQR54PWPCH028P2TdVLiQOrdacdGY3kH3edjE/export?format=csv&gid=0';
-const FALLBACK_JSON_URL = 'products-fallback.json';
-const WORKER_URL = 'https://kristina-scent-api.sashko1391.workers.dev';
+var WORKER_URL = 'https://kristina-scent-api.sashko1391.workers.dev';
+var FALLBACK_JSON_URL = 'products-fallback.json';
 
 // STATE
-let allProducts = [];
-let cart = [];
+var allProducts = [];
+var cart = [];
 
 // ==========================================
 // INITIALIZATION
@@ -46,37 +45,48 @@ async function loadProducts() {
         loading.style.display = 'block';
         error.style.display = 'none';
         
-        console.log('Loading products...');
+        console.log('Loading products via Worker proxy...');
         
         var controller = new AbortController();
-        var timeoutId = setTimeout(function() { controller.abort(); }, 5000);
+        var timeoutId = setTimeout(function() { controller.abort(); }, 8000);
         
         try {
-            var response = await fetch(GOOGLE_SHEET_URL, {
+            // Method 1: Try Worker Proxy
+            var response = await fetch(WORKER_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ action: 'get-products' }),
                 signal: controller.signal
             });
+            
             clearTimeout(timeoutId);
             
-            if (!response.ok) throw new Error('Sheets not OK');
+            if (!response.ok) throw new Error('Worker proxy failed: ' + response.status);
             
-            var csvText = await response.text();
-            console.log('CSV loaded, length:', csvText.length);
+            var data = await response.json();
             
-            allProducts = parseCSV(csvText);
-            console.log('Products from Sheets:', allProducts.length);
+            if (!data.csv) throw new Error('No CSV data from worker');
             
-        } catch (sheetsError) {
-            console.warn('Google Sheets failed, using fallback:', sheetsError.message);
+            console.log('✅ CSV loaded via Worker proxy, length:', data.csv.length);
             
+            allProducts = parseCSV(data.csv);
+            console.log('✅ Products from Worker proxy:', allProducts.length);
+            
+        } catch (workerError) {
+            console.warn('❌ Worker proxy failed, using fallback:', workerError.message);
+            
+            // Method 2: Fallback to JSON
             var fallbackResponse = await fetch(FALLBACK_JSON_URL);
             if (!fallbackResponse.ok) throw new Error('Both sources failed');
             
             var fallbackData = await fallbackResponse.json();
             allProducts = fallbackData.products;
             
-            console.log('Products from fallback:', allProducts.length);
+            console.log('⚠️ Products from fallback:', allProducts.length);
             
-            showToast('\u26A0\uFE0F Завантажено з резервної копії');
+            showToast('⚠️ Завантажено з резервної копії');
         }
         
         if (allProducts.length === 0) {
@@ -87,7 +97,7 @@ async function loadProducts() {
         displayProducts(allProducts);
         
     } catch (err) {
-        console.error('Error loading products:', err);
+        console.error('❌ Error loading products:', err);
         loading.style.display = 'none';
         error.style.display = 'block';
     }
@@ -199,28 +209,28 @@ function displayProducts(products) {
             
             if (p.aiDescription.top && p.aiDescription.top.length > 0) {
                 hoverHTML += '<div style="font-size:13px;margin-bottom:6px;">';
-                hoverHTML += '<strong style="color:#D4AF37;">\u2B06\uFE0F Верх:</strong> ';
+                hoverHTML += '<strong style="color:#D4AF37;">⬆️ Верх:</strong> ';
                 hoverHTML += '<span style="color:#666;">' + p.aiDescription.top.join(', ') + '</span>';
                 hoverHTML += '</div>';
             }
             
             if (p.aiDescription.heart && p.aiDescription.heart.length > 0) {
                 hoverHTML += '<div style="font-size:13px;margin-bottom:6px;">';
-                hoverHTML += '<strong style="color:#D4AF37;">\uD83D\uDC96 Серце:</strong> ';
+                hoverHTML += '<strong style="color:#D4AF37;">💖 Серце:</strong> ';
                 hoverHTML += '<span style="color:#666;">' + p.aiDescription.heart.join(', ') + '</span>';
                 hoverHTML += '</div>';
             }
             
             if (p.aiDescription.base && p.aiDescription.base.length > 0) {
                 hoverHTML += '<div style="font-size:13px;margin-bottom:12px;">';
-                hoverHTML += '<strong style="color:#D4AF37;">\u2B07\uFE0F База:</strong> ';
+                hoverHTML += '<strong style="color:#D4AF37;">⬇️ База:</strong> ';
                 hoverHTML += '<span style="color:#666;">' + p.aiDescription.base.join(', ') + '</span>';
                 hoverHTML += '</div>';
             }
         }
         
         hoverHTML += '<p style="font-size:18px;font-weight:bold;color:#2C2C2C;margin:12px 0 8px 0;"><strong>' + p.price + ' грн</strong></p>';
-        hoverHTML += '<button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart(\'' + p.id + '\')">\uD83D\uDED2 Додати в кошик</button>';
+        hoverHTML += '<button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart(\'' + p.id + '\')">🛒 Додати в кошик</button>';
         hoverHTML += '</div>';
         
         var card = '<div class="product-card-catalog" data-id="' + p.id + '">';
@@ -245,7 +255,7 @@ function displayProducts(products) {
     
     catalogGrid.innerHTML = html.join('');
     
-    console.log('\u2705 Displayed', products.length, 'products with hover');
+    console.log('✅ Displayed', products.length, 'products with hover');
 }
 
 // ==========================================
@@ -388,7 +398,7 @@ function addToCart(productId) {
     
     saveCart();
     updateCartUI();
-    showToast('\u2705 ' + product.name + ' додано в кошик');
+    showToast('✅ ' + product.name + ' додано в кошик');
 }
 
 function removeFromCart(productId) {
@@ -466,7 +476,7 @@ function updateCartModal() {
         html += '<div class="cart-item-name">' + item.name + '</div>';
         html += '<div class="cart-item-price">' + item.price + ' грн</div>';
         html += '<div class="cart-item-controls">';
-        html += '<button class="qty-btn" onclick="updateQuantity(\'' + item.id + '\', -1)">\u2212</button>';
+        html += '<button class="qty-btn" onclick="updateQuantity(\'' + item.id + '\', -1)">−</button>';
         html += '<span class="cart-item-qty">' + item.quantity + '</span>';
         html += '<button class="qty-btn" onclick="updateQuantity(\'' + item.id + '\', 1)">+</button>';
         html += '<button class="remove-item-btn" onclick="removeFromCart(\'' + item.id + '\')">Видалити</button>';
@@ -484,7 +494,7 @@ function updateCartModal() {
 // ==========================================
 function checkout() {
     if (cart.length === 0) {
-        showToast('\u26A0\uFE0F Кошик порожній');
+        showToast('⚠️ Кошик порожній');
         return;
     }
     
@@ -537,8 +547,8 @@ function checkout() {
         '<span style="color:#D4AF37;">' + total + ' грн</span>' +
         '</div>' +
         '</div>' +
-        '<button type="button" id="submitOrderBtn" onclick="submitOrderDirect()" style="width:100%;background:#D4AF37;color:white;border:none;padding:15px;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;margin-top:10px;">\uD83D\uDCE6 Відправити замовлення</button>' +
-        '<button type="button" onclick="backToCart()" style="width:100%;background:#f5f5f5;color:#666;border:none;padding:12px;border-radius:8px;font-size:14px;cursor:pointer;">\u2190 Назад до кошика</button>' +
+        '<button type="button" id="submitOrderBtn" onclick="submitOrderDirect()" style="width:100%;background:#D4AF37;color:white;border:none;padding:15px;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;margin-top:10px;">📦 Відправити замовлення</button>' +
+        '<button type="button" onclick="backToCart()" style="width:100%;background:#f5f5f5;color:#666;border:none;padding:12px;border-radius:8px;font-size:14px;cursor:pointer;">← Назад до кошика</button>' +
         '</div>' +
         '</div>';
     
@@ -558,17 +568,17 @@ async function submitOrderDirect() {
     
     // Validate required fields
     if (!name) {
-        showToast('\u26A0\uFE0F Введіть ваше ім\'я');
+        showToast('⚠️ Введіть ваше ім\'я');
         document.getElementById('orderName').focus();
         return;
     }
     if (!phone) {
-        showToast('\u26A0\uFE0F Введіть номер телефону');
+        showToast('⚠️ Введіть номер телефону');
         document.getElementById('orderPhone').focus();
         return;
     }
     if (!address) {
-        showToast('\u26A0\uFE0F Введіть адресу доставки');
+        showToast('⚠️ Введіть адресу доставки');
         document.getElementById('orderAddress').focus();
         return;
     }
@@ -577,28 +587,28 @@ async function submitOrderDirect() {
     var submitBtn = document.getElementById('submitOrderBtn');
     if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.textContent = '\u23F3 Відправляємо...';
+        submitBtn.textContent = '⏳ Відправляємо...';
     }
     
     // Build order message
-    var orderText = '\uD83D\uDED2 Нове замовлення!\n\n';
-    orderText += '\uD83D\uDC64 Ім\'я: ' + escapeMarkdown(name) + '\n';
-    orderText += '\uD83D\uDCF1 Телефон: ' + escapeMarkdown(phone) + '\n';
-    orderText += '\uD83D\uDCCD Адреса: ' + escapeMarkdown(address) + '\n';
+    var orderText = '🛒 Нове замовлення!\n\n';
+    orderText += '👤 Ім\'я: ' + escapeMarkdown(name) + '\n';
+    orderText += '📱 Телефон: ' + escapeMarkdown(phone) + '\n';
+    orderText += '📍 Адреса: ' + escapeMarkdown(address) + '\n';
     if (comment) {
-        orderText += '\uD83D\uDCAC Коментар: ' + escapeMarkdown(comment) + '\n';
+        orderText += '💬 Коментар: ' + escapeMarkdown(comment) + '\n';
     }
-    orderText += '\n\uD83D\uDCE6 Товари:\n';
+    orderText += '\n📦 Товари:\n';
     
     var total = 0;
     for (var i = 0; i < cart.length; i++) {
         var item = cart[i];
         var itemTotal = item.price * item.quantity;
         total += itemTotal;
-        orderText += '\u2022 ' + escapeMarkdown(item.name) + ' x' + item.quantity + ' = ' + itemTotal + ' грн\n';
+        orderText += '• ' + escapeMarkdown(item.name) + ' x' + item.quantity + ' = ' + itemTotal + ' грн\n';
     }
     
-    orderText += '\n\uD83D\uDCB0 Всього: ' + total + ' грн';
+    orderText += '\n💰 Всього: ' + total + ' грн';
     
     // Escape Markdown special chars for Telegram
     function escapeMarkdown(text) {
@@ -639,12 +649,12 @@ async function submitOrderDirect() {
         var cartModal = document.getElementById('cartModal');
         if (cartModal) cartModal.style.display = 'none';
         
-        showToast('\u2705 Замовлення відправлено! Ми зв\'яжемося з вами найближчим часом.');
+        showToast('✅ Замовлення відправлено! Ми зв\'яжемося з вами найближчим часом.');
     } else {
         // Fallback: open Telegram directly with pre-filled message
         console.log('Worker failed, using Telegram deep link fallback');
         
-        var telegramText = '\uD83D\uDED2 Замовлення з сайту\n\n';
+        var telegramText = '🛒 Замовлення з сайту\n\n';
         telegramText += 'Ім\'я: ' + name + '\n';
         telegramText += 'Телефон: ' + phone + '\n';
         telegramText += 'Адреса: ' + address + '\n';
@@ -673,7 +683,7 @@ async function submitOrderDirect() {
         // Open Telegram
         window.open(telegramUrl, '_blank');
         
-        showToast('\u2705 Замовлення готове! Відправте повідомлення в Telegram.');
+        showToast('✅ Замовлення готове! Відправте повідомлення в Telegram.');
     }
 }
 
@@ -698,4 +708,4 @@ function showToast(message) {
     }, 3000);
 }
 
-console.log('\u2705 Catalog.js v2.4 loaded');
+console.log('✅ Catalog.js v2.5 loaded - Worker Proxy');
