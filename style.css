@@ -1,5 +1,5 @@
 /* ========================================
-   Dniprowska Parfumerka — CSS Styles
+   KRISTINA | SCENT Ã¢â‚¬â€ CSS Styles
    Mobile-first, Responsive, Soft Luxury
    ======================================== */
 
@@ -220,7 +220,7 @@ h1, h2, h3, h4, h5, h6 {
 .hero-slider {
     position: relative;
     width: 100%;
-    aspect-ratio: 16 / 9; /* Mobile: 16:9 */
+    min-height: 420px; /* Mobile: enough for title + text + button */
     overflow: hidden;
 }
 
@@ -259,7 +259,7 @@ h1, h2, h3, h4, h5, h6 {
     object-fit: cover;
 }
 
-/* Overlay для читабельності тексту */
+/* Overlay ÃÂ´ÃÂ»Ã‘Â Ã‘â€¡ÃÂ¸Ã‘â€šÃÂ°ÃÂ±ÃÂµÃÂ»Ã‘Å’ÃÂ½ÃÂ¾Ã‘ÂÃ‘â€šÃ‘â€“ Ã‘â€šÃÂµÃÂºÃ‘ÂÃ‘â€šÃ‘Æ’ */
 .hero-slide::before {
     content: '';
     position: absolute;
@@ -281,21 +281,21 @@ h1, h2, h3, h4, h5, h6 {
 .hero-content {
     max-width: 600px;
     margin: 0 auto;
-    padding: var(--spacing-lg);
+    padding: var(--spacing-md) var(--spacing-sm);
 }
 
 .hero-title {
     font-family: var(--font-headings);
-    font-size: 2rem;
-    margin-bottom: var(--spacing-md);
+    font-size: 1.75rem;
+    margin-bottom: var(--spacing-sm);
     color: var(--color-text);
     line-height: 1.2;
 }
 
 .hero-text {
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: var(--color-text);
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
     line-height: 1.6;
 }
 
@@ -940,14 +940,21 @@ h1, h2, h3, h4, h5, h6 {
     /* Hero Slider - 21:9 on tablet/desktop */
     .hero-slider {
         aspect-ratio: 21 / 9;
+        min-height: auto;
+    }
+    
+    .hero-content {
+        padding: var(--spacing-lg);
     }
     
     .hero-title {
         font-size: 3rem;
+        margin-bottom: var(--spacing-md);
     }
     
     .hero-text {
         font-size: 1.25rem;
+        margin-bottom: var(--spacing-lg);
     }
     
     .hero-arrow {
@@ -1047,7 +1054,7 @@ h1, h2, h3, h4, h5, h6 {
         font-size: 3.5rem;
     }
     
-    /* Categories - 3 columns (2 rows × 3) */
+    /* Categories - 3 columns (2 rows Ãƒâ€” 3) */
     .categories-large-grid {
         grid-template-columns: repeat(3, 1fr);
     }
